@@ -1,5 +1,5 @@
 from app.config import settings
-import swisseph as swe
+import pyswisseph as swe
 from datetime import datetime
 
 swe.set_ephe_path(settings.EPHEMERIS_PATH)

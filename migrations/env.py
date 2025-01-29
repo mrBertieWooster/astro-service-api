@@ -1,22 +1,12 @@
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
-import os
-from dotenv import load_dotenv
-
-# Загрузите переменные окружения из .env
-load_dotenv()
-
-# Импортируйте настройки из конфигурационного файла
 from app.config import settings
-
-# Импортируйте ваши модели SQLAlchemy
 from app.api.v1.models.horoscope import Base
 
-# Укажите метаданные ваших моделей
+# метаданные моделей
 target_metadata = Base.metadata
 
-# Используйте URL из настроек
 config = context.config
 config.set_main_option('sqlalchemy.url', settings.DATABASE_URL)
 
