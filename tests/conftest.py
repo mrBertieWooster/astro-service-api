@@ -4,6 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from app.db.database import Base
 from app.main import app
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 
 # Настройка тестовой базы данных
 TEST_DATABASE_URL = "sqlite:///./test.db"
@@ -23,3 +24,22 @@ def test_db():
 def test_client():
     with TestClient(app) as client:
         yield client
+
+@pytest.fixture
+def mock_openai():
+    with patch("openai.ChatCompletion.create") as mock:
+        mock.return_value = {
+            "choices": [{"message": {"content": "Ваш гороскоп..."}}]
+        }
+        yield mock
+
+
+@pytest.fixture
+def mock_swiss_ephemeris():
+    with patch("app.services.ephemeris.calculate_planetary_positions") as mock:
+        mock.return_value = {
+            "sun": (120.0, 0.0, 1.0),  # (долгота, широта, расстояние)
+            "moon": (45.0, 0.0, 1.0),
+            "mercury": (90.0, 0.0, 1.0),
+        }
+        yield mock

@@ -13,13 +13,28 @@ utc_plus_3 = timezone(timedelta(hours=3))
 
 @celery_app.task
 def generate_daily_horoscopes(coords=None):
+    logger.info(f'generating daily horoscopes')
+    generate_horoscopes(coords, 'daily')
+
+@celery_app.task
+def generate_weekly_horoscopes(coords=None):
+    logger.info(f'generating weekly horoscopes')
+    generate_horoscopes(coords, 'weekly')
+
+@celery_app.task
+def generate_weekly_horoscopes(coords=None):
+    logger.info(f'generating monthly horoscopes')
+    generate_horoscopes(coords, 'monthly')
+
+
+def generate_horoscopes(interval, coords=None):
     """
     Генерирует ежедневные гороскопы для всех знаков зодиака и сохраняет их в базу данных.
     """
     db = SessionLocal()
 
-    signs = list['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 
-             'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
+    signs = list['aries': str, 'taurus': str, 'gemini': str, 'cancer': str, 'leo': str, 'virgo': str, 
+             'libra': str, 'scorpio': str, 'sagittarius': str, 'capricorn': str, 'aquarius': str, 'pisces': str]
     
     date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
 

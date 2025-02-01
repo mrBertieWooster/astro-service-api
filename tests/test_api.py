@@ -3,13 +3,13 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_get_daily_horoscope():
+def test_get_daily_horoscope(mock_openai, mock_swiss_ephemeris):
     response = client.get("/horoscope/daily?sign=leo")
     assert response.status_code == 200
     assert "sign" in response.json()
     assert "prediction" in response.json()
 
-def test_get_daily_horoscope_invalid_sign():
+def test_get_daily_horoscope_invalid_sign(mock_openai, mock_swiss_ephemeris):
     response = client.get("/horoscope/daily?sign=invalid")
     assert response.status_code == 400
     assert "detail" in response.json()

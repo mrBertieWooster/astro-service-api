@@ -1,7 +1,7 @@
 from datetime import datetime
 from app.services.planet_calculation import calculate_planetary_positions, calculate_aspects
 
-def test_calculate_planetary_positions():
+def test_calculate_planetary_positions(mock_swiss_ephemeris):
     date = datetime(2023, 10, 10)
     positions = calculate_planetary_positions(date)
     
@@ -11,7 +11,7 @@ def test_calculate_planetary_positions():
     assert "moon" in positions
     assert isinstance(positions["sun"], tuple)
 
-def test_calculate_aspects():
+def test_calculate_aspects(mock_swiss_ephemeris):
     date = datetime(2023, 10, 10)
     positions = calculate_planetary_positions(date)
     aspects = calculate_aspects(positions)
