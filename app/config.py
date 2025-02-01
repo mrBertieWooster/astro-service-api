@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # OpenAI
     OPENAI_API_KEY: str
 
+    # Default coords
+    DEFAULT_COORDS: tuple = (55.7558, 37.6176)
+
     @property
     def EPHEMERIS_PATH(self) -> str:
         return self.EPHEMERIS_PATH
