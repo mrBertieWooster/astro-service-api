@@ -1,0 +1,2 @@
+2025-02-01 14:40:32,200 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=leo "HTTP/1.1 404 Not Found"
+2025-02-01 14:40:32,233 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=invalid "HTTP/1.1 404 Not Found"
