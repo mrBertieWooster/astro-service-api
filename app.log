@@ -1,2 +1,8 @@
 2025-02-01 14:40:32,200 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=leo "HTTP/1.1 404 Not Found"
 2025-02-01 14:40:32,233 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=invalid "HTTP/1.1 404 Not Found"
+2025-02-03 19:15:05,715 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 403 Forbidden"
+2025-02-03 19:33:11,674 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 403 Forbidden"
+2025-02-03 19:33:44,040 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 403 Forbidden"
+2025-02-03 19:40:02,107 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=leo "HTTP/1.1 404 Not Found"
+2025-02-03 19:40:02,140 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=invalid "HTTP/1.1 404 Not Found"
+2025-02-03 19:40:02,252 - httpx - INFO - HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 403 Forbidden"
