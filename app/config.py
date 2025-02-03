@@ -31,6 +31,10 @@ class Settings(BaseSettings):
     @property
     def OPENAI_API_KEY(self) -> str:
         return self.OPENAI_API_KEY
+    
+    @property
+    def DEFAULT_COORDS(self) -> str:
+        return self.DEFAULT_COORDS
 
     @property
     def DATABASE_URL(self) -> str:
