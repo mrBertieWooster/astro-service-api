@@ -1,3 +1,4 @@
+import pytest
 from unittest.mock import patch, Mock
 from app.services.horo_generator import generate_horoscope_text
 
@@ -29,7 +30,17 @@ def test_generate_horoscope_text(mock_openai):
     # Проверка, что мок был вызван с правильными параметрами
     mock_client.chat.completions.create.assert_called_once()
 
+
+@patch("app.services.ai_clients.openai_client.apenai_horo_generation.OpenAI")  
 def test_generate_horoscope_text_openai_error(mock_openai):
-    mock_openai.side_effect = Exception("OpenAI API error")
-    prediction = generate_horoscope_text(sign, planetary_positions, aspects, houses, interval)
-    assert "не удалось сгенерировать гороскоп" in prediction.lower()  # Проверяем, что ошибка обрабатывается
+    mock_instance = mock_openai.return_value  # Создаём мокнутый экземпляр OpenAI
+    mock_instance.chat.completions.create.side_effect = Exception("OpenAI API error")  
+
+    try:
+        prediction = generate_horoscope_text("leo", {}, [], [])
+    except Exception as e:
+        pytest.fail(f"Функция не обработала ошибку OpenAI: {e}")
+
+    assert "не удалось сгенерировать гороскоп" in prediction.lower()
+    
+  

@@ -38,7 +38,7 @@ async def get_horoscope(zodiac_sign: ZodiacSign, db: Session = Depends(get_db)):
     - **zodiac_sign**: Знак зодиака (например, aries, taurus).
     """
     logger.info(f'request for horoscope for sign {zodiac_sign}')
-    horoscope = db.query(Horoscope).filter(Horoscope.zodiac_sign == zodiac_sign).first()
+    horoscope = db.query(Horoscope).filter(Horoscope.sign == zodiac_sign).first()
     if not horoscope:
         raise HTTPException(status_code=404, detail="Horoscope not found")
     return horoscope

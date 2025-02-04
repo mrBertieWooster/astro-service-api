@@ -5,6 +5,7 @@ from app.db.database import Base
 from app.main import app
 from fastapi.testclient import TestClient
 from unittest.mock import patch
+from app.api.v1.endpoints.horoscope import get_db
 
 # Настройка тестовой базы данных
 TEST_DATABASE_URL = "sqlite:///./test.db"
@@ -15,9 +16,17 @@ def test_db():
     Base.metadata.create_all(bind=engine)
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
+
+    # Monkey-patch для эндпоинта
+    def override_get_db():
+        yield db
+
+    app.dependency_overrides[get_db] = override_get_db
+
     yield db
     db.close()
     Base.metadata.drop_all(bind=engine)
+    app.dependency_overrides.clear()
 
 # Фикстура для тестирования API
 @pytest.fixture(scope="module")

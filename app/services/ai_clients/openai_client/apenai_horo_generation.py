@@ -19,6 +19,6 @@ def generate_horoscope_text(sign: str, planetary_positions: dict, aspects: list,
             max_tokens=3000
         )
         return response.choices[0].message.content
-    except APIError as e:
-        print(f'Ошибка OpenAI API: {e}')
+    except (APIError, Exception) as e:
+        print(f'OpenAI API error: {e}')
         return 'Не удалось сгенерировать гороскоп. Попробуйте позже.'
