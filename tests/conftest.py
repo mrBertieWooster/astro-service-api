@@ -12,9 +12,11 @@ TEST_DATABASE_URL = "sqlite:///./test.db"
 
 @pytest.fixture(scope="module")
 def test_db():
-    engine = create_engine(TEST_DATABASE_URL)
-    Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    connection = engine.connect()  # Создаём соединение
+    transaction = connection.begin()  # Начинаем транзакцию
+    Base.metadata.create_all(bind=connection)
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=connection)
     db = SessionLocal()
 
     # Monkey-patch для эндпоинта
@@ -24,8 +26,10 @@ def test_db():
     app.dependency_overrides[get_db] = override_get_db
 
     yield db
-    db.close()
-    Base.metadata.drop_all(bind=engine)
+    
+    transaction.rollback()
+    Base.metadata.drop_all(bind=connection)
+    connection.close()
     app.dependency_overrides.clear()
 
 # Фикстура для тестирования API
