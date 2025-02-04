@@ -25,7 +25,7 @@ def generate_weekly_horoscopes(coords=None):
     generate_horoscopes(coords, 'weekly')
 
 @dramatiq.actor
-def generate_weekly_horoscopes(coords=None):
+def generate_monthly_horoscopes(coords=None):
     logger.info(f'generating monthly horoscopes')
     generate_horoscopes(coords, 'monthly')
 
