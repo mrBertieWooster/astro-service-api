@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     APP_NAME: str = "Astro Service API"
@@ -28,13 +28,26 @@ class Settings(BaseSettings):
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        
-        @classmethod
-        def customise_sources(cls, init_settings, env_settings, file_secret_settings,):
-            return (init_settings, env_settings, file_secret_settings,)
-        
-        
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        env_nested_delimiter="__",
+    )
+    
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls,
+        init_settings,
+        env_settings,
+        dotenv_settings,
+        file_secret_settings,
+    ):
+        return (
+            init_settings,     # Значения, переданные при создании экземпляра
+            env_settings,      # Переменные окружения
+            dotenv_settings,   # Файл .env
+            file_secret_settings,  # Секреты
+        )
+    
 settings = Settings()

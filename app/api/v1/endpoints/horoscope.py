@@ -1,7 +1,7 @@
 from app.api.v1.models.horoscope import Horoscope, HoroscopeRequest
 from app.db.database import SessionLocal
 from app.services.horo_generator import generate_single_horoscope
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, timezone
@@ -80,6 +80,8 @@ async def get_horoscope(
         
         return {"sign": horoscope.sign, "prediction": horoscope.prediction}
     
+    except ValueError as ve:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid sign: {str(ve)}")
     except SQLAlchemyError as e:
         db.rollback()  # Откатываем транзакцию при ошибке базы данных
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

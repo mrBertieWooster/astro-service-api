@@ -25,7 +25,18 @@ def test_get_daily_horoscope(test_db, test_client, sign):
 
     test_db.rollback()
 
+
 def test_get_daily_horoscope_invalid_sign(test_client):
-    response = test_client.get("/horoscope/daily?sign=invalid")
-    assert response.status_code == 400
-    assert "detail" in response.json()
+    response = test_client.get("/api/v1/horoscope/invalid_sign")
+    assert response.status_code == 422
+    
+    data = response.json()
+    assert "detail" in data
+    
+    errors = data["detail"]
+    assert len(errors) == 1
+
+    error = errors[0]
+    assert error["loc"] == ["path", "zodiac_sign"]  # местоположение ошибки
+    assert error["type"] == "enum"
+    assert "Input should be 'aries', 'taurus'" in error["msg"]
