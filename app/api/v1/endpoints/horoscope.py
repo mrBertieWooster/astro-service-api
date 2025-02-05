@@ -1,4 +1,4 @@
-from app.api.v1.models.horoscope import Horoscope
+from app.api.v1.models.horoscope import Horoscope, HoroscopeRequest
 from app.db.database import SessionLocal
 from app.services.horo_generator import generate_single_horoscope
 from fastapi import APIRouter, Depends, HTTPException
@@ -52,7 +52,13 @@ async def get_horoscope(
     """
     
     utc_plus_3 = timezone(timedelta(hours=3))
-    date = datetime.now(utc_plus_3).date()
+    current_date = datetime.now(utc_plus_3).date()
+    
+    if interval == IntervalType.MONTHLY:
+        first_day_of_month = current_date.replace(day=1)
+        date = first_day_of_month
+    else:
+        date = current_date
     
     logger.info(f'Request for {interval.value} horoscope for sign {zodiac_sign}')
     
@@ -63,6 +69,15 @@ async def get_horoscope(
                 horoscope = generate_single_horoscope(db, zodiac_sign.value, interval.value)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to generate horoscope: {str(e)}")
+            
+        request_record = HoroscopeRequest(
+            sign=zodiac_sign.value,
+            type=interval.value,
+            horoscope_id=horoscope.id
+        )
+        db.add(request_record)
+        db.commit()
+        
         return {"sign": horoscope.sign, "prediction": horoscope.prediction}
     
     except SQLAlchemyError as e:
