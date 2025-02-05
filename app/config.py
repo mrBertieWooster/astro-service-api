@@ -25,18 +25,16 @@ class Settings(BaseSettings):
     DEFAULT_COORDS: tuple = (55.7558, 37.6176)
 
     @property
-    def EPHEMERIS_PATH(self) -> str:
-        return self.EPHEMERIS_PATH
-    
-    @property
-    def OPENAI_API_KEY(self) -> str:
-        return self.OPENAI_API_KEY
-
-    @property
     def DATABASE_URL(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     class Config:
         env_file = ".env"
-
+        env_file_encoding = "utf-8"
+        
+        @classmethod
+        def customise_sources(cls, init_settings, env_settings, file_secret_settings,):
+            return (init_settings, env_settings, file_secret_settings,)
+        
+        
 settings = Settings()
