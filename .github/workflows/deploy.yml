@@ -64,4 +64,4 @@ jobs:
 
       - name: Restart application
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} -p ${{ secrets.SSH_PORT }} "cd ${{ secrets.REMOTE_DIR }} && sudo systemctl restart astro-service.service"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} -p ${{ secrets.SSH_PORT }} "systemctl restart astro-service.service"
