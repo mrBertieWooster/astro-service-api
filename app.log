@@ -178,3 +178,10 @@
 2025-02-04 22:33:48,934 - app.api.v1.endpoints.horoscope - INFO - Request for daily horoscope for sign ZodiacSign.ARIES
 2025-02-04 22:33:48,935 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/horoscope/aries "HTTP/1.1 200 OK"
 2025-02-04 22:33:48,936 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=invalid "HTTP/1.1 404 Not Found"
+2025-02-05 10:08:32,200 - app.api.v1.endpoints.horoscope - INFO - Request for daily horoscope for sign ZodiacSign.LEO
+2025-02-05 10:08:32,203 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/horoscope/leo "HTTP/1.1 200 OK"
+2025-02-05 10:08:32,206 - app.api.v1.endpoints.horoscope - INFO - Request for daily horoscope for sign ZodiacSign.VIRGO
+2025-02-05 10:08:32,206 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/horoscope/virgo "HTTP/1.1 200 OK"
+2025-02-05 10:08:32,209 - app.api.v1.endpoints.horoscope - INFO - Request for daily horoscope for sign ZodiacSign.ARIES
+2025-02-05 10:08:32,210 - httpx - INFO - HTTP Request: GET http://testserver/api/v1/horoscope/aries "HTTP/1.1 200 OK"
+2025-02-05 10:08:32,211 - httpx - INFO - HTTP Request: GET http://testserver/horoscope/daily?sign=invalid "HTTP/1.1 404 Not Found"
