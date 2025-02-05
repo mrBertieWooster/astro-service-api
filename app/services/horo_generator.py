@@ -42,14 +42,12 @@ def generate_horoscopes(interval='daily', coords=None):
     
     db = SessionLocal()
 
-    
     date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
 
     if not coords:
         coords = settings.DEFAULT_COORDS
         
     try:
-
         planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
         aspects = calculate_aspects(planetary_positions)
         houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])

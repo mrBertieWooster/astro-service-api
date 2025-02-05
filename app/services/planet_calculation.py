@@ -1,6 +1,9 @@
 from app.config import settings
 import swisseph as swe
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 swe.set_ephe_path(settings.EPHEMERIS_PATH)
 
@@ -9,6 +12,8 @@ def calculate_planetary_positions(date: datetime):
     Рассчитывает положения планет на указанную дату.
     Возвращает словарь с позициями планет.
     """
+    logger.debug(f'calculating planetary positions')
+    
     jd = swe.julday(date.year, date.month, date.day, date.hour + date.minute / 60.0)
     planets = {
         'sun': swe.SUN,

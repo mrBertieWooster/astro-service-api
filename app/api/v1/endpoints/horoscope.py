@@ -65,7 +65,9 @@ async def get_horoscope(
     try:
         horoscope = db.query(Horoscope).filter(Horoscope.sign == zodiac_sign, Horoscope.type == interval.value, Horoscope.date == date).first()
         if not horoscope: # в базе еще нет, генерируем для конкретного знака
+            logger.warning(f'Cannot find horoscope for sign {zodiac_sign} in db for interval {interval.value}')
             try:
+                logger.info(f'Try to generate horoscope for sign {zodiac_sign} in-place')
                 horoscope = generate_single_horoscope(db, zodiac_sign.value, interval.value)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to generate horoscope: {str(e)}")
