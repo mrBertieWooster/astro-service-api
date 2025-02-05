@@ -5,3 +5,4 @@ venv/
 *.db
 *.log
 .pytest_cache
+tree.txt
