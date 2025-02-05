@@ -45,7 +45,7 @@ def calculate_aspects(planetary_positions):
             planet1 = planets[i]
             planet2 = planets[j]
             
-            # Извлекаем долготу (первый элемент кортежа)
+            # Извлекаем долготу обеих планет
             lon1 = planetary_positions[planet1][0]
             lon2 = planetary_positions[planet2][0]
             
