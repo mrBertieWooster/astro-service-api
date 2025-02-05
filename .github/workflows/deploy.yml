@@ -54,6 +54,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} -p ${{ secrets.SSH_PORT }} "cd ${{ secrets.REMOTE_DIR }} && pip install -r requirements.txt"
 
+      - name: Add env on remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} -p ${{ secrets.SSH_PORT }} "export POSTGRES_USER=${{ secrets.POSTGRES_USER }} && \
+                  export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} && export OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }} && export DATABASE_URL=${{ secrets.DATABASE_URL }}"
+
       - name: Restart application
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} -p ${{ secrets.SSH_PORT }} "cd ${{ secrets.REMOTE_DIR }} && sudo systemctl restart astro-service.service"
