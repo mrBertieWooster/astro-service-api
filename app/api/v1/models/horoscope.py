@@ -19,6 +19,8 @@ class Horoscope(Base):
     source = Column(String, default='swisseph')  # Источник данных
     is_active = Column(Boolean, default=True)  # Активен ли гороскоп
     
+    requests = relationship("HoroscopeRequest", back_populates="horoscope")
+    
     
 class HoroscopeRequest(Base):
     __tablename__ = 'horoscope_requests'

@@ -4,3 +4,4 @@ venv/
 .env
 test.db
 app.log
+.pytest_cache
