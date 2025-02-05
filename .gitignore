@@ -2,6 +2,6 @@ __pycache__/
 astro-service-api/
 venv/
 .env
-test.db
-app.log
+*.db
+*.log
 .pytest_cache
