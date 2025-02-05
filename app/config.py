@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
 
     #Ephemeris
-    EPHEMERIS_PATH: str
+    EPHEMERIS_PATH: str = 'app/ephemeris'
 
     # Postgres
     POSTGRES_USER: str
