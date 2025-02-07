@@ -1,9 +1,10 @@
 from app.api.v1.models.horoscope import Horoscope, HoroscopeRequest
-from app.db.database import SessionLocal
+from app.db.database import async_session, get_db
 from app.services.horo_generator import generate_single_horoscope
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.future import select
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 import logging
@@ -13,12 +14,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Dependency to get the database session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+#async def get_db():
+#    async with async_session() as session:
+#        yield session
+#        await session.close()
 
 class ZodiacSign(str, Enum):
     ARIES = "aries"
@@ -44,7 +43,7 @@ class IntervalType(str, Enum):
 async def get_horoscope(
     zodiac_sign: ZodiacSign,
     interval: IntervalType = IntervalType.DAILY,  # По умолчанию на день
-    db: Session = Depends(get_db)):
+    db: AsyncSession = Depends(get_db)):
     
     """
     Получить гороскоп для знака зодиака.
@@ -63,12 +62,21 @@ async def get_horoscope(
     logger.info(f'Request for {interval.value} horoscope for sign {zodiac_sign}')
     
     try:
-        horoscope = db.query(Horoscope).filter(Horoscope.sign == zodiac_sign, Horoscope.type == interval.value, Horoscope.date == date).first()
+        horoscope = (
+            (await db.execute(
+                select(Horoscope).filter(
+                    Horoscope.sign == zodiac_sign.value,
+                    Horoscope.type == interval.value,
+                    Horoscope.date == date
+                )
+            )).scalar_one_or_none()
+        )
+        
         if not horoscope: # в базе еще нет, генерируем для конкретного знака
             logger.warning(f'Cannot find horoscope for sign {zodiac_sign} in db for interval {interval.value}')
             try:
                 logger.info(f'Try to generate horoscope for sign {zodiac_sign} in-place')
-                horoscope = generate_single_horoscope(db, zodiac_sign.value, interval.value)
+                horoscope = await generate_single_horoscope(db, zodiac_sign.value, interval.value)
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to generate horoscope: {str(e)}")
             
@@ -78,7 +86,7 @@ async def get_horoscope(
             horoscope_id=horoscope.id
         )
         db.add(request_record)
-        db.commit()
+        await db.commit()
         
         return {"sign": horoscope.sign, "prediction": horoscope.prediction}
     
@@ -90,14 +98,27 @@ async def get_horoscope(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
     finally:
-        db.close()   
+        await db.close()   
     
 
 
-@router.post("/")
-async def create_horoscope(zodiac_sign: str, prediction: str, db: Session = Depends(get_db)):
-    db_horoscope = Horoscope(zodiac_sign=zodiac_sign, prediction=prediction)
+@router.post("/", summary="Создать гороскоп", description="Добавляет новый гороскоп в базу данных.")
+async def create_horoscope(
+    zodiac_sign: str,
+    prediction: str,
+    db: AsyncSession = Depends(get_db) 
+):
+    db_horoscope = Horoscope(
+        sign=zodiac_sign,
+        prediction=prediction,
+        date=datetime.now(timezone(timedelta(hours=3))).date(),
+        type="manual",  # Тип можно указать явно
+        language="ru",
+        source="manual",
+        is_active=True
+    )
     db.add(db_horoscope)
-    db.commit()
-    db.refresh(db_horoscope)
+    await db.commit()  # Асинхронный commit
+    await db.refresh(db_horoscope)  # Асинхронное обновление объекта
+
     return db_horoscope

@@ -1,12 +1,42 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy import Column, DateTime
+from datetime import datetime
+
 
 class Base(DeclarativeBase):
-    pass
+    __abstract__ = True
+    created_at = Column(DateTime, default=datetime.now, nullable=False)
+    updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
 def get_db_url():
+    print(settings.DATABASE_URL)
     return settings.DATABASE_URL
 
-engine = create_engine(get_db_url())
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def create_engine():
+    return create_async_engine(
+        get_db_url(),
+        future=True, 
+        echo=settings.DEBUG
+    )
+
+def create_session_factory(engine):
+    return sessionmaker(
+        engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    )
+
+
+engine = create_engine()
+async_session = create_session_factory(engine)
+
+
+async def get_db():
+    """
+    Dependency для FastAPI: создаёт и возвращает асинхронную сессию.
+    """
+    async with async_session() as session:
+        yield session
+        await session.close()

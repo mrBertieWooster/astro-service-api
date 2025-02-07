@@ -84,7 +84,7 @@ def generate_horoscopes(interval='daily', coords=None):
         db.close()
 
 
-def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):
+async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):
     """
     Генерирует гороскоп для одного знака зодиака.
     """
@@ -96,7 +96,7 @@ def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):
         aspects = calculate_aspects(planetary_positions)
         houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
         
-        prediction = generate_horoscope_text(zodiac_sign, planetary_positions, aspects, houses, intervals_mapping[interval])
+        prediction = await generate_horoscope_text(zodiac_sign, planetary_positions, aspects, houses, intervals_mapping[interval])
         
         horoscope = Horoscope(
             sign=zodiac_sign,
@@ -108,8 +108,8 @@ def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):
             is_active=True
         )
         db.add(horoscope)
-        db.commit()
-        db.refresh(horoscope)
+        await db.commit()
+        await db.refresh(horoscope)
         
         return horoscope
     
