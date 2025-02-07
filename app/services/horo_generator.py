@@ -1,5 +1,5 @@
 from app.api.v1.models.horoscope import Horoscope
-from app.db.database import SessionLocal
+from app.db.database import async_session
 from app.services.planet_calculation import calculate_planetary_positions, calculate_houses, calculate_aspects
 from app.services.ai_clients.openai_client.apenai_horo_generation import generate_horoscope_text
 from app.config import settings

@@ -2,7 +2,7 @@ from app.api.v1.models.horoscope import Horoscope, HoroscopeRequest
 from app.db.database import async_session, get_db
 from app.services.horo_generator import generate_single_horoscope
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.future import select
 from datetime import datetime, timedelta, timezone

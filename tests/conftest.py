@@ -1,23 +1,24 @@
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from app.api.v1.endpoints.horoscope import get_db
 from app.db.database import Base
 from app.main import app
+import pytest
+from asyncpg import Connection
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from unittest.mock import patch
-from app.api.v1.endpoints.horoscope import get_db
 
 # Настройка тестовой базы данных
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
 @pytest.fixture(scope="module")
 def test_db():
-    engine = create_engine(TEST_DATABASE_URL, connect_args={"check_same_thread": False})
+    engine = create_async_engine(TEST_DATABASE_URL, future=True, connect_args={"check_same_thread": False})
     connection = engine.connect()  # Создаём соединение
     transaction = connection.begin()  # Начинаем транзакцию
-    Base.metadata.create_all(bind=connection)
-    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=connection)
-    db = SessionLocal()
+    Base.metadata.create_all(bind=Connection)
+    session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, bind=connection)
+    db = session()
 
     # Monkey-patch для эндпоинта
     def override_get_db():
