@@ -2,36 +2,47 @@ from app.api.v1.endpoints.horoscope import get_db
 from app.db.database import Base
 from app.main import app
 import pytest
-from asyncpg import Connection
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from unittest.mock import patch
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Настройка тестовой базы данных
-TEST_DATABASE_URL = "sqlite:///./test.db"
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
 @pytest.fixture(scope="module")
-def test_db():
-    engine = create_async_engine(TEST_DATABASE_URL, future=True, connect_args={"check_same_thread": False})
-    connection = engine.connect()  # Создаём соединение
-    transaction = connection.begin()  # Начинаем транзакцию
-    Base.metadata.create_all(bind=Connection)
-    session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False, bind=connection)
-    db = session()
+async def test_db():
+    """
+    Создаёт асинхронное соединение с тестовой базой данных и предоставляет сессию.
+    """
+    logger.info("Initializing test database...")
 
-    # Monkey-patch для эндпоинта
-    def override_get_db():
-        yield db
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        connect_args={"check_same_thread": False},  # Необходимый параметр для SQLite
+        future=True
+    )
 
-    app.dependency_overrides[get_db] = override_get_db
+    # Создание таблиц
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    yield db
-    
-    transaction.rollback()
-    Base.metadata.drop_all(bind=connection)
-    connection.close()
-    app.dependency_overrides.clear()
+    testing_session_local = sessionmaker(
+        engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async with testing_session_local() as session:
+        yield session
+        
+    logger.info("Tearing down test database...")
+
+    # Очистка после тестов
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine.dispose()
 
 # Фикстура для тестирования API
 @pytest.fixture(scope="module")
