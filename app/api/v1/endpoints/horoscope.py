@@ -13,12 +13,6 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# Dependency to get the database session
-#async def get_db():
-#    async with async_session() as session:
-#        yield session
-#        await session.close()
-
 class ZodiacSign(str, Enum):
     ARIES = "aries"
     TAURUS = "taurus"
@@ -115,7 +109,9 @@ async def create_horoscope(
         type="manual",  # Тип можно указать явно
         language="ru",
         source="manual",
-        is_active=True
+        is_active=True,
+        created_at=datetime.now().replace(tzinfo=None),
+        updated_at=datetime.now().replace(tzinfo=None)
     )
     db.add(db_horoscope)
     await db.commit()  # Асинхронный commit

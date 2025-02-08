@@ -65,7 +65,9 @@ def generate_horoscopes(interval='daily', coords=None):
                 type=interval,
                 language="ru",
                 source="swisseph",
-                is_active=True
+                is_active=True,
+                created_at=datetime.now().replace(tzinfo=None),
+                updated_at=datetime.now().replace(tzinfo=None)
             )
             db.add(horoscope)
         
@@ -105,7 +107,9 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
             type=interval,
             language="ru",
             source="swisseph",
-            is_active=True
+            is_active=True,
+            created_at=datetime.now().replace(tzinfo=None),
+            updated_at=datetime.now().replace(tzinfo=None)
         )
         db.add(horoscope)
         await db.commit()
