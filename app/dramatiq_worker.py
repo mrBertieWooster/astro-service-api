@@ -3,6 +3,7 @@ from app.services.horo_generator import generate_horoscopes
 import dramatiq
 from dramatiq.brokers.rabbitmq import RabbitmqBroker
 from dramatiq_crontab import cron
+from datetime import datetime, timezone, timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,9 @@ dramatiq.set_broker(rabbitmq_broker)
 async def generate_daily_horoscopes(coords=None):
     logger.info(f'generating daily horoscopes')
     try:
-        await generate_horoscopes(interval="daily", coords=coords)
+        utc_plus_3 = timezone(timedelta(hours=3))
+        current_date = datetime.now(utc_plus_3).date()
+        await generate_horoscopes(interval="daily", coords=coords, date=current_date)
         logger.info("Daily horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate daily horoscopes: {str(e)}")
@@ -32,7 +35,9 @@ async def generate_daily_horoscopes(coords=None):
 async def generate_weekly_horoscopes(coords=None):
     logger.info(f'generating weekly horoscopes')
     try:
-        await generate_horoscopes(interval="weekly", coords=coords)
+        utc_plus_3 = timezone(timedelta(hours=3))
+        current_date = datetime.now(utc_plus_3).date()
+        await generate_horoscopes(interval="weekly", coords=coords, date=current_date)
         logger.info("Weekly horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate weekly horoscopes: {str(e)}")
@@ -43,7 +48,9 @@ async def generate_weekly_horoscopes(coords=None):
 async def generate_monthly_horoscopes(coords=None):
     logger.info(f'generating monthly horoscopes')
     try:
-        await generate_horoscopes(interval="monthly", coords=coords)
+        utc_plus_3 = timezone(timedelta(hours=3))
+        current_date = datetime.now(utc_plus_3).date()
+        await generate_horoscopes(interval="monthly", coords=coords, date=current_date)
         logger.info("Monthly horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate monthly horoscopes: {str(e)}")

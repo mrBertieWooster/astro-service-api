@@ -16,7 +16,7 @@ signs = list['aries': str, 'taurus': str, 'gemini': str, 'cancer': str, 'leo': s
              'libra': str, 'scorpio': str, 'sagittarius': str, 'capricorn': str, 'aquarius': str, 'pisces': str]
 
 
-async def generate_horoscopes(interval='daily', coords=None):
+async def generate_horoscopes(interval='daily', coords=None, date=None):
     """
     Асинхронная генерация гороскопов для всех знаков зодиака и сохранение их в базу данных.
 
