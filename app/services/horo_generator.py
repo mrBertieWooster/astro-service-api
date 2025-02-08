@@ -6,39 +6,15 @@ from app.config import settings
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-import dramatiq
 import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
 
-utc_plus_3 = timezone(timedelta(hours=3))
 intervals_mapping = {'daily': 'день', 'weekly': 'неделя', 'monthly': 'месяц'}
 signs = list['aries': str, 'taurus': str, 'gemini': str, 'cancer': str, 'leo': str, 'virgo': str, 
              'libra': str, 'scorpio': str, 'sagittarius': str, 'capricorn': str, 'aquarius': str, 'pisces': str]
 
-@dramatiq.actor(max_retries=3, time_limit=60000)
-async def generate_daily_horoscopes(coords=None):
-    logger.info(f'generating daily horoscopes')
-    await generate_horoscopes(coords, 'daily')
-
-@dramatiq.actor(max_retries=3, time_limit=60000)
-async def generate_weekly_horoscopes(coords=None):
-    logger.info(f'generating weekly horoscopes')
-    await generate_horoscopes(coords, 'weekly')
-
-@dramatiq.actor(max_retries=3, time_limit=60000)
-async def generate_monthly_horoscopes(coords=None):
-    logger.info(f'generating monthly horoscopes')
-    await generate_horoscopes(coords, 'monthly')
-
-
-from app.db.database import async_session
-from sqlalchemy.exc import SQLAlchemyError
-import logging
-from datetime import datetime, timezone, timedelta
-
-logger = logging.getLogger("astro-service-api")
 
 async def generate_horoscopes(interval='daily', coords=None):
     """
@@ -47,23 +23,15 @@ async def generate_horoscopes(interval='daily', coords=None):
     :param interval: Тип интервала (например, 'daily', 'weekly').
     :param coords: Координаты для вычисления домов.
     """
-    utc_plus_3 = timezone(timedelta(hours=3))
-    current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
 
     if not coords:
         coords = settings.DEFAULT_COORDS
 
     try:
-        planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
-        aspects = calculate_aspects(planetary_positions)
-        houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
-
-        # Создание асинхронной сессии
         async with async_session() as db:
             async with db.begin():  # Начало транзакции
                 tasks = []
                 for sign in signs:
-                    # Генерация текста гороскопа
                     task = asyncio.create_task(
                         generate_single_horoscope(
                             db=db,
@@ -92,7 +60,8 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
     """
     Генерирует гороскоп для одного знака зодиака.
     """
-    date = datetime.now(utc_plus_3).date()
+    utc_plus_3 = timezone(timedelta(hours=3))
+    current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
     coords = settings.DEFAULT_COORDS
     
     try:
@@ -105,7 +74,7 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         horoscope = Horoscope(
             sign=zodiac_sign,
             prediction=prediction,
-            date=date,
+            date=current_date,
             type=interval,
             language="ru",
             source="swisseph",

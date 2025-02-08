@@ -1,6 +1,5 @@
-from app.api.v1.endpoints.horoscope import router as horoscope_router
 from app.db.database import get_db
-from app.db.database import async_session, Base
+from app.db.database import Base
 from app.main import app
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
