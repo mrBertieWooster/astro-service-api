@@ -1,15 +1,16 @@
 from openai import AsyncOpenAI, APIError
 from app.config import settings
 
-client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
 async def generate_horoscope_text(sign: str, planetary_positions: dict, aspects: list, houses: list, interval: str='день') -> str:
+
+    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
     try:
         prompt = (
             f'Составь гороскоп для знака {sign} на основе следующих данных:\n'
             f'Положения планет: {planetary_positions}\n'
             f'Аспекты: {aspects}\n'
-            f'Дома: {houses}'
+            f'Дома: {houses}\n'
             f'Гороскоп должен быть составлен на {interval}'
         )   
         response = await client.chat.completions.create(

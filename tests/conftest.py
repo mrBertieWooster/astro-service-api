@@ -1,5 +1,6 @@
-from app.api.v1.endpoints.horoscope import get_db
-from app.db.database import Base
+from app.api.v1.endpoints.horoscope import router as horoscope_router
+from app.db.database import get_db
+from app.db.database import async_session, Base
 from app.main import app
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
@@ -20,9 +21,10 @@ async def test_db():
     """
     logger.info("Initializing test database...")
 
+    # Создание асинхронного engine
     engine = create_async_engine(
         TEST_DATABASE_URL,
-        connect_args={"check_same_thread": False},  # Необходимый параметр для SQLite
+        connect_args={"check_same_thread": False},
         future=True
     )
 
@@ -30,14 +32,27 @@ async def test_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    # Создание асинхронной фабрики сессий
     testing_session_local = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
     )
 
+    # Переопределение dependency для тестов
+    async def override_get_db():
+        async with testing_session_local() as session:
+            yield session
+
+    # Сохраняем оригинальную dependency
+    original_get_db = app.dependency_overrides.get(get_db, get_db)
+    app.dependency_overrides[get_db] = override_get_db
+
     async with testing_session_local() as session:
         yield session
-        
+
     logger.info("Tearing down test database...")
+
+    # Восстанавливаем оригинальную dependency после тестов
+    app.dependency_overrides[get_db] = original_get_db
 
     # Очистка после тестов
     async with engine.begin() as conn:
@@ -51,7 +66,7 @@ def test_client():
         yield client
 
 @pytest.fixture
-def mock_openai():
+async def mock_openai():
     with patch("openai.ChatCompletion.create") as mock:
         mock.return_value = {
             "choices": [{"message": {"content": "Ваш гороскоп..."}}]
