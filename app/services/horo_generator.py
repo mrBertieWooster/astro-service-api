@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 import dramatiq
+import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,74 +17,75 @@ intervals_mapping = {'daily': 'день', 'weekly': 'неделя', 'monthly': '
 signs = list['aries': str, 'taurus': str, 'gemini': str, 'cancer': str, 'leo': str, 'virgo': str, 
              'libra': str, 'scorpio': str, 'sagittarius': str, 'capricorn': str, 'aquarius': str, 'pisces': str]
 
-@dramatiq.actor
-def generate_daily_horoscopes(coords=None):
+@dramatiq.actor(max_retries=3, time_limit=60000)
+async def generate_daily_horoscopes(coords=None):
     logger.info(f'generating daily horoscopes')
-    generate_horoscopes(coords, 'daily')
+    await generate_horoscopes(coords, 'daily')
 
-@dramatiq.actor
-def generate_weekly_horoscopes(coords=None):
+@dramatiq.actor(max_retries=3, time_limit=60000)
+async def generate_weekly_horoscopes(coords=None):
     logger.info(f'generating weekly horoscopes')
-    generate_horoscopes(coords, 'weekly')
+    await generate_horoscopes(coords, 'weekly')
 
-@dramatiq.actor
-def generate_monthly_horoscopes(coords=None):
+@dramatiq.actor(max_retries=3, time_limit=60000)
+async def generate_monthly_horoscopes(coords=None):
     logger.info(f'generating monthly horoscopes')
-    generate_horoscopes(coords, 'monthly')
+    await generate_horoscopes(coords, 'monthly')
 
 
-def generate_horoscopes(interval='daily', coords=None):
+from app.db.database import async_session
+from sqlalchemy.exc import SQLAlchemyError
+import logging
+from datetime import datetime, timezone, timedelta
+
+logger = logging.getLogger("astro-service-api")
+
+async def generate_horoscopes(interval='daily', coords=None):
     """
-    Генерирует гороскоп(и) для всех знаков зодиака и сохраняет их в базу данных.
-    
+    Асинхронная генерация гороскопов для всех знаков зодиака и сохранение их в базу данных.
+
     :param interval: Тип интервала (например, 'daily', 'weekly').
     :param coords: Координаты для вычисления домов.
     """
-    
-    db = SessionLocal()
-
-    date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
+    utc_plus_3 = timezone(timedelta(hours=3))
+    current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
 
     if not coords:
         coords = settings.DEFAULT_COORDS
-        
+
     try:
         planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
         aspects = calculate_aspects(planetary_positions)
         houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
-        
-        for sign in signs:
-            
-            prediction = generate_horoscope_text(sign, planetary_positions, aspects, houses, intervals_mapping[interval])
-            
-            logging.info(f'Horoscope for {sign}: {prediction}')
-            
-            horoscope = Horoscope(
-                sign=sign,
-                prediction=prediction,
-                date=date,
-                type=interval,
-                language="ru",
-                source="swisseph",
-                is_active=True,
-                created_at=datetime.now().replace(tzinfo=None),
-                updated_at=datetime.now().replace(tzinfo=None)
-            )
-            db.add(horoscope)
-        
-        db.commit()
-    
+
+        # Создание асинхронной сессии
+        async with async_session() as db:
+            async with db.begin():  # Начало транзакции
+                tasks = []
+                for sign in signs:
+                    # Генерация текста гороскопа
+                    task = asyncio.create_task(
+                        generate_single_horoscope(
+                            db=db,
+                            sign=sign,
+                            interval=interval,
+                            coords=coords
+                        )
+                    )
+                    tasks.append(task)
+
+                # Параллельное выполнение задач
+                await asyncio.gather(*tasks)
+                await db.commit()
+
     except ValueError as ve:
-        logging.error(f"Error in astrological calculations: {str(ve)}")
+        logger.error(f"Error in astrological calculations: {str(ve)}")
     except ConnectionError as ce:
-        logging.error(f"Failed to connect to external service: {str(ce)}")
+        logger.error(f"Failed to connect to external service: {str(ce)}")
     except SQLAlchemyError as se:
-        db.rollback()  # Откатываем транзакцию при ошибке базы данных
-        logging.error(f"Database error while saving horoscopes: {str(se)}")
+        logger.error(f"Database error while saving horoscopes: {str(se)}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred: {str(e)}")
-    finally:
-        db.close()
+        logger.error(f"An unexpected error occurred: {str(e)}")
 
 
 async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):

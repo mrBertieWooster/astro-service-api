@@ -62,7 +62,7 @@ async def test_generate_new_horoscope(test_client):
     assert response.status_code == 200
     data = response.json()
     assert data["sign"] == sign
-    assert data["prediction"] == f"Тестовый гороскоп для {sign}"
+    assert data["prediction"] == f"Гороскоп для {sign}"
 
 
 def test_get_daily_horoscope_invalid_sign(test_client):
