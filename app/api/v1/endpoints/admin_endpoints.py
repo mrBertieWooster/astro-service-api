@@ -1,20 +1,20 @@
-from fastapi import APIRouter, Depends
-from app.dramatiq_worker import generate_daily_horoscopes, generate_weekly_horoscopes, generate_monthly_horoscopes
+from fastapi import APIRouter
+from app.scheduler import generate_daily_horoscopes, generate_weekly_horoscopes, generate_monthly_horoscopes
 
-router = APIRouter(prefix="/admin", tags=["admin"])
 
-@router.post("/trigger-daily-horoscopes")
+router = APIRouter()
+
+@router.post("/generate/daily")
 async def trigger_daily_horoscopes():
-    """
-    Ручной триггер для генерации ежедневных гороскопов.
-    """
-    generate_daily_horoscopes.send()
-    return {"message": "Daily horoscopes generation triggered."}
+    generate_daily_horoscopes()
+    return {"message": "Daily horoscope generation started"}
 
-@router.post("/trigger-weekly-horoscopes")
+@router.post("/generate/weekly")
 async def trigger_weekly_horoscopes():
-    """
-    Ручной триггер для генерации еженедельных гороскопов.
-    """
-    generate_weekly_horoscopes.send()
-    return {"message": "Weekly horoscopes generation triggered."}
+    generate_weekly_horoscopes()
+    return {"message": "Weekly horoscope generation started"}
+
+@router.post("/generate/monthly")
+async def trigger_monthly_horoscopes():
+    generate_monthly_horoscopes()
+    return {"message": "Monthly horoscope generation started"}

@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError
 from app.api.v1.endpoints.horoscope import router as horoscope_router
 from app.api.v1.endpoints.compatibility import router as compatibility_router
 from app.api.v1.endpoints.admin_endpoints import router as admin_router
 from app.config import settings
+from app.scheduler import scheduler
 import logging
 
 logging.basicConfig(
@@ -14,7 +16,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Starting APScheduler...")
+    scheduler.start()
+    yield
+    logger.info("Shutting down APScheduler...")
+    scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
+
 
 app.include_router(horoscope_router, prefix="/api/v1/horoscope", tags=["horoscope"])
 app.include_router(compatibility_router, prefix="/api/v1/compatibility", tags=["compatibility"])
