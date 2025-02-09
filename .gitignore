@@ -7,3 +7,4 @@ venv/
 .pytest_cache
 tree.txt
 .idea/*
+.pytest_cache/

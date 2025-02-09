@@ -61,8 +61,10 @@ async def test_db():
 # Фикстура для тестирования API
 @pytest.fixture(scope="module")
 def test_client():
+    logger.info("Initializing test client...")
     with TestClient(app) as client:
         yield client
+    logger.info("Tearing down test client...")
 
 @pytest.fixture
 async def mock_openai():

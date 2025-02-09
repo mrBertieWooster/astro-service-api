@@ -3,6 +3,8 @@ from sqlalchemy import engine_from_config, pool
 from logging.config import fileConfig
 from app.config import settings
 from app.api.v1.models.horoscope import Base
+from app.api.v1.models.zodiac import Zodiac
+from app.api.v1.models.compatibility import Compatibility
 
 # метаданные моделей
 target_metadata = Base.metadata

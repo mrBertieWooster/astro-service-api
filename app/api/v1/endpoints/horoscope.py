@@ -1,5 +1,6 @@
 from app.api.v1.models.horoscope import Horoscope, HoroscopeRequest
-from app.db.database import async_session, get_db
+from app.enums.zodiac import ZodiacSign
+from app.db.database import get_db
 from app.services.horo_generator import generate_single_horoscope
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,20 +13,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
-
-class ZodiacSign(str, Enum):
-    ARIES = "aries"
-    TAURUS = "taurus"
-    GEMINI = "gemini"
-    CANCER = "cancer"
-    LEO = "leo"
-    VIRGO = "virgo"
-    LIBRA = "libra"
-    SCORPIO = "scorpio"
-    SAGITTARIUS = "sagittarius"
-    CAPRICORN = "capricorn"
-    AQUARIUS = "aquarius"
-    PISCES = "pisces"
 
 class IntervalType(str, Enum):
     DAILY = "daily"

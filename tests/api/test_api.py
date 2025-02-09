@@ -79,3 +79,4 @@ def test_get_daily_horoscope_invalid_sign(test_client):
     assert error["loc"] == ["path", "zodiac_sign"]  # местоположение ошибки
     assert error["type"] == "enum"
     assert "Input should be 'aries', 'taurus'" in error["msg"]
+    
