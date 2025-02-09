@@ -34,6 +34,7 @@ jobs:
           echo "RABBITMQ_PORT=${{ secrets.RABBITMQ_PORT }}" >> $GITHUB_ENV
           echo "RABBITMQ_USER=${{ secrets.RABBITMQ_USER }}" >> $GITHUB_ENV
           echo "RABBITMQ_PASSWORD=${{ secrets.RABBITMQ_PASSWORD }}" >> $GITHUB_ENV
+          echo "LOG_PATH=${{ secrets.LOG_PATH }}" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
