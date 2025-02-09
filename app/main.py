@@ -3,11 +3,13 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from app.api.v1.endpoints.horoscope import router as horoscope_router
 from app.api.v1.endpoints.compatibility import router as compatibility_router
+from app.api.v1.endpoints.admin_endpoints import router as admin_router
+from app.config import settings
 import logging
 
 logging.basicConfig(
     level=logging.INFO,
-    filename="app.log",
+    filename=f'{settings.LOG_PATH}/app.log',
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
@@ -16,6 +18,8 @@ app = FastAPI()
 
 app.include_router(horoscope_router, prefix="/api/v1/horoscope", tags=["horoscope"])
 app.include_router(compatibility_router, prefix="/api/v1/compatibility", tags=["compatibility"])
+app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):

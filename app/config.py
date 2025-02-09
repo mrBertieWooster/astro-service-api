@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 class Settings(BaseSettings):
     APP_NAME: str = "Astro Service API"
     DEBUG: bool = True
+    
+    LOG_PATH: str
 
     #Ephemeris
     EPHEMERIS_PATH: str = 'app/ephemeris'
