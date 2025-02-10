@@ -12,8 +12,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 intervals_mapping = {'daily': 'день', 'weekly': 'неделя', 'monthly': 'месяц'}
-signs = list['aries': str, 'taurus': str, 'gemini': str, 'cancer': str, 'leo': str, 'virgo': str, 
-             'libra': str, 'scorpio': str, 'sagittarius': str, 'capricorn': str, 'aquarius': str, 'pisces': str]
+signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 
+             'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
 
 
 async def generate_horoscopes(interval='daily', coords=None, date=None):
@@ -80,6 +80,7 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
             updated_at=datetime.now().replace(tzinfo=None)
         )
         db.add(horoscope)
+        await db.commit()
         await db.refresh(horoscope)
         
         return horoscope
