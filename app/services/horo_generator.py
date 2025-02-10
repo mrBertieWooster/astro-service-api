@@ -26,15 +26,16 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
     try:
         async with async_session() as db:
             async with db.begin():  # Начало транзакции
-                tasks = []
-                for sign in signs:
-                    task = asyncio.create_task(
-                        generate_single_horoscope(db, sign, interval, coords)
-                    )
-                    tasks.append(task)
+                tasks = [
+                    asyncio.create_task(generate_single_horoscope(db, sign, interval, coords))
+                    for sign in signs
+                ]
 
-                # Параллельное выполнение задач
-                await asyncio.gather(*tasks)
+                results = await asyncio.gather(*tasks, return_exceptions=True)  # Собираем результаты
+
+                for result in results:
+                    if isinstance(result, Exception):  # Проверяем, была ли ошибка
+                        logger.error(f"Error while generating horoscope: {str(result)}")
                 await db.commit()
 
     except ValueError as ve:
