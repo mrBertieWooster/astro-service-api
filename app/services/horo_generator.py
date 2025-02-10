@@ -23,10 +23,6 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
     :param interval: Тип интервала (например, 'daily', 'weekly').
     :param coords: Координаты для вычисления домов.
     """
-
-    if not coords:
-        coords = settings.DEFAULT_COORDS
-
     try:
         async with async_session() as db:
             async with db.begin():  # Начало транзакции
@@ -56,10 +52,13 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
         logger.error(f"An unexpected error occurred: {str(e)}")
 
 
-async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str):
+async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str, coords=None):
     """
     Генерирует гороскоп для одного знака зодиака.
     """
+    if not coords:
+        coords = settings.DEFAULT_COORDS
+    
     utc_plus_3 = timezone(timedelta(hours=3))
     current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
     coords = settings.DEFAULT_COORDS
@@ -68,6 +67,8 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
         aspects = calculate_aspects(planetary_positions)
         houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
+        
+        logger.info(f'generating prediction fo sign: {zodiac_sign}')
         
         prediction = await generate_horoscope_text(zodiac_sign, planetary_positions, aspects, houses, intervals_mapping[interval])
         

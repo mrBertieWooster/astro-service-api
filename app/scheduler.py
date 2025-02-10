@@ -10,10 +10,15 @@ logger = logging.getLogger(__name__)
 scheduler = BackgroundScheduler()
 
 def run_async_task(task, *args, **kwargs):
-    """Запускает асинхронную задачу в синхронном коде."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(task(*args, **kwargs))
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:  # Если цикла нет, создаем новый
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        return loop.run_until_complete(task(*args, **kwargs))
+    
+    # Если цикл уже запущен, создаем задачу в нем
+    return asyncio.create_task(task(*args, **kwargs))
 
 def generate_daily_horoscopes():
     logger.info("Generating daily horoscopes")
