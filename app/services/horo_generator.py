@@ -6,6 +6,7 @@ from app.config import settings
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.future import select
 import asyncio
 import logging
 
@@ -24,29 +25,34 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
     :param coords: Координаты для вычисления домов.
     """
     try:
-        async with async_session() as db:
-            async with db.begin():  # Начало транзакции
-                tasks = [
-                    asyncio.create_task(generate_single_horoscope(db, sign, interval, coords))
-                    for sign in signs
-                ]
+        tasks = [
+            asyncio.create_task(generate_single_horoscope_task(db, sign, interval, coords))
+            for sign in signs
+        ]
 
-                results = await asyncio.gather(*tasks, return_exceptions=True)  # Собираем результаты
+        results = await asyncio.gather(*tasks, return_exceptions=True)  # Собираем результаты
 
-                for result in results:
-                    if isinstance(result, Exception):  # Проверяем, была ли ошибка
-                        logger.error(f"Error while generating horoscope: {str(result)}")
-                await db.commit()
+        for result in results:
+            if isinstance(result, Exception):  # Проверяем, была ли ошибка
+                logger.error(f"Error while generating horoscope: {str(result)}")
 
     except ValueError as ve:
         logger.error(f"Error in astrological calculations: {str(ve)}")
     except ConnectionError as ce:
         logger.error(f"Failed to connect to external service: {str(ce)}")
-    except SQLAlchemyError as se:
-        logger.error(f"Database error while saving horoscopes: {str(se)}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
 
+
+async def generate_single_horoscope_task(sign: str, interval: str, coords=None):
+    # Открываем новую сессию для каждой задачи
+    async with async_session() as db:
+        try:
+            await generate_single_horoscope(db, sign, interval, coords)
+            await db.commit()
+        except Exception as e:
+            logger.error(f"Failed to generate or save horoscope for {sign}: {str(e)}")
+            
 
 async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str, coords=None):
     """
@@ -62,6 +68,19 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
     coords = settings.DEFAULT_COORDS
     
     try:
+        
+        existing_horoscope = await db.execute(
+            select(Horoscope).filter(
+                Horoscope.sign == zodiac_sign,
+                Horoscope.date == datetime.now(timezone(timedelta(hours=3))).date(),
+                Horoscope.type == interval
+            )
+        )
+        if existing_horoscope.scalar_one_or_none():
+            logger.info(f"Horoscope for {zodiac_sign} already exists for {interval}. Skipping generation.")
+            return existing_horoscope.scalar_one()
+        
+        
         planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
         aspects = calculate_aspects(planetary_positions)
         houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
@@ -82,6 +101,7 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
             updated_at=datetime.now().replace(tzinfo=None)
         )
         db.add(horoscope)
+        await db.flush()
         await db.refresh(horoscope)
         
         return horoscope
