@@ -27,12 +27,12 @@ async def generate_horoscope_text(sign: str, planetary_positions: dict, aspects:
             response = await client.chat.completions.create(
                 model=settings.OPENAI_MODEL,
                 messages=[{'role': 'user', 'content': prompt}],
-                max_tokens=2400,
+                max_tokens=2000,
                 timeout=30
             )
             return response.choices[0].message.content
         
-        except openai.error.RateLimitError:
+        except openai.RateLimitError:
                 if i < retries - 1:
                     wait_time = delay * (2 ** i)
                     print(f"Rate limit reached. Retrying in {wait_time} sec...")

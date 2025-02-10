@@ -57,7 +57,7 @@ async def test_generate_horoscope_text():
     mock_client.chat.completions.create.assert_awaited_once_with(
         model="gpt-4o",
         messages=[{"role": "user", "content": expected_content}],
-        max_tokens=2400,
+        max_tokens=2000,
         timeout=30
     )
 

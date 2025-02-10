@@ -70,22 +70,23 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         
         prediction = await generate_horoscope_text(zodiac_sign, planetary_positions, aspects, houses, intervals_mapping[interval])
         
-        horoscope = Horoscope(
-            sign=zodiac_sign,
-            prediction=prediction,
-            date=current_date,
-            type=interval,
-            language="ru",
-            source="swisseph",
-            is_active=True,
-            created_at=datetime.now().replace(tzinfo=None),
-            updated_at=datetime.now().replace(tzinfo=None)
-        )
-        db.add(horoscope)
-        await db.commit()
-        await db.refresh(horoscope)
+        async with db.begin():
         
-        return horoscope
+            horoscope = Horoscope(
+                sign=zodiac_sign,
+                prediction=prediction,
+                date=current_date,
+                type=interval,
+                language="ru",
+                source="swisseph",
+                is_active=True,
+                created_at=datetime.now().replace(tzinfo=None),
+                updated_at=datetime.now().replace(tzinfo=None)
+            )
+            db.add(horoscope)
+            await db.refresh(horoscope)
+            
+            return horoscope
     
     except SQLAlchemyError as se:
         await db.rollback()
