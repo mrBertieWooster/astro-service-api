@@ -1,8 +1,7 @@
 import logging
 import logging.config
 import os
-from pythonjsonlogger import jsonlogger
-
+from pythonjsonlogger import json
 # Папка для логов
 LOG_DIR = "logs"
 if not os.path.exists(LOG_DIR):
@@ -17,7 +16,7 @@ LOGGING_CONFIG = {
             "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
         },
         "json": {
-            "()": jsonlogger.JsonFormatter,
+            "()": json.JsonFormatter,
             "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
         },
     },
@@ -41,15 +40,8 @@ LOGGING_CONFIG = {
             "formatter": "json",
         },
     },
-    "loggers": {
-        "app": {
-            "level": "INFO",
-            "handlers": ["console", "file"],
-            "propagate": False,
-        }
-    },
     "root": {
-        "level": "WARNING",
+        "level": "INFO",
         "handlers": ["console", "file"],
     },
 }

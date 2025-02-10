@@ -2,6 +2,7 @@ from app.api.v1.endpoints.horoscope import router as horoscope_router
 from app.api.v1.endpoints.compatibility import router as compatibility_router
 from app.api.v1.endpoints.admin_endpoints import router as admin_router
 from app.scheduler import scheduler
+from app.logging_config import LOGGING_CONFIG
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -9,6 +10,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError
 import logging
+
+
+logging.config.dictConfig(LOGGING_CONFIG)
 
 
 logger = logging.getLogger(__name__)

@@ -29,12 +29,7 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
                 tasks = []
                 for sign in signs:
                     task = asyncio.create_task(
-                        generate_single_horoscope(
-                            db=db,
-                            sign=sign,
-                            interval=interval,
-                            coords=coords
-                        )
+                        generate_single_horoscope(db, sign, interval, coords)
                     )
                     tasks.append(task)
 
@@ -84,7 +79,6 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
             updated_at=datetime.now().replace(tzinfo=None)
         )
         db.add(horoscope)
-        await db.commit()
         await db.refresh(horoscope)
         
         return horoscope
