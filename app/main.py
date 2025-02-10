@@ -3,6 +3,7 @@ from app.api.v1.endpoints.compatibility import router as compatibility_router
 from app.api.v1.endpoints.admin_endpoints import router as admin_router
 from app.scheduler import scheduler
 from app.logging_config import LOGGING_CONFIG
+from app.exceptions import HoroscopeGenerationError, OpenAIAPIError, DatabaseError
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -52,4 +53,25 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
     return JSONResponse(
         status_code=500,
         content={"detail": "Database error. Please check the server logs."}
+    )
+
+@app.exception_handler(HoroscopeGenerationError)
+async def horoscope_exception_handler(request, exc: HoroscopeGenerationError):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Ошибка генерации гороскопа", "detail": exc.message},
+    )
+
+@app.exception_handler(OpenAIAPIError)
+async def openai_exception_handler(request, exc: OpenAIAPIError):
+    return JSONResponse(
+        status_code=502,
+        content={"error": "Ошибка запроса к OpenAI", "detail": exc.message},
+    )
+
+@app.exception_handler(DatabaseError)
+async def database_exception_handler(request, exc: DatabaseError):
+    return JSONResponse(
+        status_code=500,
+        content={"error": "Ошибка базы данных", "detail": exc.message},
     )

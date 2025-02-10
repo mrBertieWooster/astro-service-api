@@ -70,16 +70,12 @@ async def get_horoscope(
         await db.commit()
         
         return {"sign": horoscope.sign, "prediction": horoscope.prediction}
-    
-    except ValueError as ve:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid sign: {str(ve)}")
+
     except SQLAlchemyError as e:
         db.rollback()  # Откатываем транзакцию при ошибке базы данных
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
-    finally:
-        await db.close()   
+        raise HTTPException(status_code=500, detail=f"Ошибка при генерации гороскопа: {str(e)}")
     
 
 

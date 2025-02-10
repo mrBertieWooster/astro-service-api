@@ -52,6 +52,8 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
     """
     Генерирует гороскоп для одного знака зодиака.
     """
+    if not isinstance(zodiac_sign, str):  # Добавьте проверку
+        raise ValueError(f"Invalid zodiac_sign type: {type(zodiac_sign)}. Expected str.")
     if not coords:
         coords = settings.DEFAULT_COORDS
     
@@ -85,12 +87,8 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         
         return horoscope
     
-    except ValueError as ve:
-        raise ValueError(f"Error in astrological calculations: {str(ve)}")
-    except ConnectionError as ce:
-        raise ConnectionError(f"Failed to connect to external service: {str(ce)}")
     except SQLAlchemyError as se:
-        db.rollback()
-        raise RuntimeError(f"Database error while saving horoscope: {str(se)}")
+        await db.rollback()
+        raise
     except Exception as e:
         raise RuntimeError(f"An unexpected error occurred: {str(e)}")
