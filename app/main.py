@@ -59,7 +59,7 @@ async def sqlalchemy_exception_handler(request: Request, exc: SQLAlchemyError):
 async def horoscope_exception_handler(request, exc: HoroscopeGenerationError):
     return JSONResponse(
         status_code=500,
-        content={"error": "Ошибка генерации гороскопа", "detail": exc.message},
+        content={"detail": "Ошибка генерации гороскопа. Попробуйте позже."},
     )
 
 @app.exception_handler(OpenAIAPIError)

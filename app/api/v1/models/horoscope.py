@@ -1,5 +1,5 @@
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.db.database import Base
 
@@ -20,6 +20,10 @@ class Horoscope(Base):
     is_active = Column(Boolean, default=True)  # Активен ли гороскоп
     
     requests = relationship("HoroscopeRequest", back_populates="horoscope")
+    
+    __table_args__ = (
+        UniqueConstraint('sign', 'date', 'type', name='uix_horoscope_sign_date_type'),
+    )
     
     
 class HoroscopeRequest(Base):
