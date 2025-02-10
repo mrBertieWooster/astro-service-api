@@ -8,3 +8,5 @@ venv/
 tree.txt
 .idea/*
 .pytest_cache/
+logs/*
+
