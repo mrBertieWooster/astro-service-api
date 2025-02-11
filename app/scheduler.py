@@ -23,9 +23,7 @@ def run_async_task(task, *args, **kwargs):
 def generate_daily_horoscopes():
     logger.info("Generating daily horoscopes")
     try:
-        utc_plus_3 = timezone(timedelta(hours=3))
-        current_date = datetime.now(utc_plus_3).date()
-        run_async_task(generate_horoscopes, interval="daily", date=current_date)
+        run_async_task(generate_horoscopes, interval="daily")
         logger.info("Daily horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate daily horoscopes: {str(e)}")
@@ -33,9 +31,7 @@ def generate_daily_horoscopes():
 def generate_weekly_horoscopes():
     logger.info("Generating weekly horoscopes")
     try:
-        utc_plus_3 = timezone(timedelta(hours=3))
-        current_date = datetime.now(utc_plus_3).date()
-        run_async_task(generate_horoscopes, interval="weekly", date=current_date)
+        run_async_task(generate_horoscopes, interval="weekly")
         logger.info("Weekly horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate weekly horoscopes: {str(e)}")
@@ -43,9 +39,7 @@ def generate_weekly_horoscopes():
 def generate_monthly_horoscopes():
     logger.info("Generating monthly horoscopes")
     try:
-        utc_plus_3 = timezone(timedelta(hours=3))
-        current_date = datetime.now(utc_plus_3).date()
-        run_async_task(generate_horoscopes, interval="monthly", date=current_date)
+        run_async_task(generate_horoscopes, interval="monthly")
         logger.info("Monthly horoscope generation completed successfully.")
     except Exception as e:
         logger.error(f"Failed to generate monthly horoscopes: {str(e)}")

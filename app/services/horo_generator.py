@@ -1,8 +1,7 @@
 from app.api.v1.models.horoscope import Horoscope
 from app.db.database import async_session
-from app.services.planet_calculation import calculate_planetary_positions, calculate_houses, calculate_aspects
+from app.services.planet_calculation import calculate_planetary_positions_and_houses, calculate_aspects
 from app.services.ai_clients.openai_client.apenai_horo_generation import generate_horoscope_text
-from app.config import settings
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -17,7 +16,7 @@ signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo',
              'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces']
 
 
-async def generate_horoscopes(interval='daily', coords=None, date=None):
+async def generate_horoscopes(interval='daily'):
     """
     Асинхронная генерация гороскопов для всех знаков зодиака и сохранение их в базу данных.
 
@@ -26,7 +25,7 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
     """
     try:
         tasks = [
-            asyncio.create_task(generate_single_horoscope_task(db, sign, interval, coords))
+            asyncio.create_task(generate_single_horoscope_task(sign, interval))
             for sign in signs
         ]
 
@@ -44,31 +43,27 @@ async def generate_horoscopes(interval='daily', coords=None, date=None):
         logger.error(f"An unexpected error occurred: {str(e)}")
 
 
-async def generate_single_horoscope_task(sign: str, interval: str, coords=None):
+async def generate_single_horoscope_task(sign: str, interval: str):
     # Открываем новую сессию для каждой задачи
     async with async_session() as db:
         try:
-            await generate_single_horoscope(db, sign, interval, coords)
+            await generate_single_horoscope(db, sign, interval)
             await db.commit()
         except Exception as e:
             logger.error(f"Failed to generate or save horoscope for {sign}: {str(e)}")
             
 
-async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str, coords=None):
+async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str, lat: float = None, lon: float = None):
     """
     Генерирует гороскоп для одного знака зодиака.
     """
-    if not isinstance(zodiac_sign, str):  # Добавьте проверку
+    if not isinstance(zodiac_sign, str):
         raise ValueError(f"Invalid zodiac_sign type: {type(zodiac_sign)}. Expected str.")
-    if not coords:
-        coords = settings.DEFAULT_COORDS
     
     utc_plus_3 = timezone(timedelta(hours=3))
     current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
-    coords = settings.DEFAULT_COORDS
     
     try:
-        
         existing_horoscope = await db.execute(
             select(Horoscope).filter(
                 Horoscope.sign == zodiac_sign,
@@ -81,13 +76,12 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
             return existing_horoscope.scalar_one()
         
         
-        planetary_positions = calculate_planetary_positions(datetime.now(utc_plus_3))
+        planetary_positions = calculate_planetary_positions_and_houses(date=datetime.now(utc_plus_3), latitude=lat, longitude=lon)
         aspects = calculate_aspects(planetary_positions)
-        houses = calculate_houses(datetime.now(utc_plus_3), lat=coords[0], lon=coords[1])
         
         logger.info(f'generating prediction fo sign: {zodiac_sign}')
         
-        prediction = await generate_horoscope_text(zodiac_sign, planetary_positions, aspects, houses, intervals_mapping[interval])
+        prediction = await generate_horoscope_text(zodiac_sign, planetary_positions, aspects, intervals_mapping[interval])
             
         horoscope = Horoscope(
             sign=zodiac_sign,

@@ -17,7 +17,6 @@ async def test_generate_horoscope_text():
     sign = "leo"
     planetary_positions = {"sun": "Aries", "moon": "Taurus"}
     aspects = ["sun-moon: sextile"]
-    houses = ["Mars in 1st house"]
     interval = "день"
 
     # Мокируем асинхронный клиент OpenAI
@@ -38,7 +37,7 @@ async def test_generate_horoscope_text():
         mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
 
         # Вызываем тестируемую функцию
-        prediction = await generate_horoscope_text(sign, planetary_positions, aspects, houses, interval)
+        prediction = await generate_horoscope_text(sign, planetary_positions, aspects, interval)
 
     # Проверки
     assert isinstance(prediction, str)
@@ -47,9 +46,8 @@ async def test_generate_horoscope_text():
 
     expected_content = (
         f"Составь гороскоп для знака {sign} на основе следующих данных:\n"
-        f"Положения планет: {planetary_positions}\n"
+        f"Положения планет и дома: {planetary_positions}\n"
         f"Аспекты: {aspects}\n"
-        f"Дома: {houses}\n"
         f"Гороскоп должен быть составлен на {interval}"
     )
 

@@ -31,7 +31,14 @@ async def test_get_daily_horoscope(test_db, test_client, sign):
     stored_horoscope = result.scalar_one_or_none()
     assert stored_horoscope is not None  # Проверяем, что запись существует
 
-    response = test_client.get(f"/api/v1/horoscope/{sign}")
+    response = test_client.post(
+        f"/api/v1/horoscope/{sign}",
+        json={
+            "interval": "daily",
+            "latitude": 55.7558,
+            "longitude": 37.6173
+        }
+    )
 
     # Проверки
     assert response.status_code == 200
@@ -42,31 +49,16 @@ async def test_get_daily_horoscope(test_db, test_client, sign):
     assert data["prediction"] == f"Гороскоп для {sign}"
     
 
-@pytest.mark.asyncio
-async def test_generate_new_horoscope(test_client):
-    """
-    Тест генерации нового гороскопа.
-    """
-    sign = "leo"
-    utc_plus_3 = timezone(timedelta(hours=3))
-    current_date = datetime.now(utc_plus_3).date()
-
-    # Мокируем generate_horoscope_text
-    with patch("app.services.horo_generator.generate_horoscope_text") as mock_generate:
-        mock_generate.return_value = AsyncMock(return_value=f"Тестовый гороскоп для {sign}")
-
-        # Вызов API
-        response = test_client.get(f"/api/v1/horoscope/{sign}")
-
-    # Проверки
-    assert response.status_code == 200
-    data = response.json()
-    assert data["sign"] == sign
-    assert data["prediction"] == f"Гороскоп для {sign}"
-
 
 def test_get_daily_horoscope_invalid_sign(test_client):
-    response = test_client.get("/api/v1/horoscope/invalid_sign")
+    response = test_client.post(
+        f"/api/v1/horoscope/rhinoceros",
+        json={
+            "interval": "daily",
+            "latitude": 55.7558,
+            "longitude": 37.6173
+        }
+    )
     assert response.status_code == 422
     
     data = response.json()

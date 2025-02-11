@@ -77,7 +77,7 @@ async def mock_openai():
 
 @pytest.fixture
 def mock_swiss_ephemeris():
-    with patch("app.services.planet_calculation.calculate_planetary_positions") as mock:
+    with patch("app.services.planet_calculation.calculate_planetary_positions_and_houses") as mock:
         mock.return_value = {
             "sun": (120.0, 0.0, 1.0),  # (долгота, широта, расстояние)
             "moon": (45.0, 0.0, 1.0),

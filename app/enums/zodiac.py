@@ -14,6 +14,12 @@ class ZodiacSign(str, Enum):
     AQUARIUS = "aquarius"
     PISCES = "pisces"
     
+
+class IntervalType(str, Enum):
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+    
 class ZodiacElement(str, Enum):
     """
     Стихии знаков зодиака.
