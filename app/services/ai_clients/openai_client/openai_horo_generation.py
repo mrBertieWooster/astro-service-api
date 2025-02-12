@@ -1,4 +1,5 @@
 from app.config import settings
+from app.services.ai_clients.ai_clients import get_openai_client
 from openai import AsyncOpenAI, APIError
 import openai
 import asyncio
@@ -7,13 +8,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def generate_horoscope_text(sign: str, planetary_positions: dict, aspects: list, interval: str='день') -> str:
-
-    client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
     
     retries = 5
     delay = 2  # Начальная задержка
 
     for i in range(retries):
+        
+        client = get_openai_client()
 
         try:
             prompt = (
@@ -46,9 +47,9 @@ async def generate_ai_compatibility_description(sign1: str, sign2: str) -> str:
     """
     Генерирует текстовое описание совместимости через OpenAI.
     """
+    client = get_openai_client()
+    
     try:
-        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
         prompt = (
             f"Составь описание совместимости между {sign1.capitalize()} и {sign2.capitalize()}.\n"
             f"Укажи сильные и слабые стороны отношений."

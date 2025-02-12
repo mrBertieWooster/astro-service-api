@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import List, Dict
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any
 
 class PlaceOfBirth(BaseModel):
     latitude: float
@@ -25,7 +25,9 @@ class House(BaseModel):
     occupied_by: List[str]
 
 class NatalChartResponse(BaseModel):
-    description: str
-    planets: Dict[str, PlanetPosition]
-    aspects: List[Aspect]
-    houses: Dict[int, House]
+    description: str = Field(..., description="Готовое текстовое описание натальной карты.")
+    planets: Dict[str, Dict[str, Any]] = Field(..., description="Положения планет, включая знаки и дома.")
+    aspects: List[Dict[str, Any]] = Field(..., description="Список аспектов между планетами.")
+    houses: Dict[int, float] = Field(..., description="Долготы куспидов домов.")
+    ascendant: float = Field(..., ge=0, le=360, description="Асцендент в градусах эклиптической долготы.")
+    midheaven: float = Field(..., ge=0, le=360, description="Средина Неба (MC) в градусах эклиптической долготы.")

@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 from app.services.horo_generator import generate_horoscope_text
+from app.services.ai_clients.ai_clients import get_openai_client
 
 sign = "leo"
 planetary_positions = {"sun": 120, "moon": 45, "mercury": 90}
@@ -20,7 +21,8 @@ async def test_generate_horoscope_text():
     interval = "день"
 
     # Мокируем асинхронный клиент OpenAI
-    with patch("app.services.ai_clients.openai_client.apenai_horo_generation.AsyncOpenAI") as MockOpenAI:
+    with patch("app.services.ai_clients.openai_client.openai_horo_generation.get_openai_client") as MockOpenAI:
+
         mock_client = MockOpenAI.return_value
 
         # Создаём моковый ответ

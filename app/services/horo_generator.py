@@ -1,7 +1,7 @@
 from app.api.v1.models.horoscope import Horoscope
 from app.db.database import async_session
 from app.services.planet_calculation import calculate_planetary_positions_and_houses, calculate_aspects
-from app.services.ai_clients.openai_client.apenai_horo_generation import generate_horoscope_text
+from app.services.ai_clients.openai_client.openai_horo_generation import generate_horoscope_text
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -50,6 +50,7 @@ async def generate_single_horoscope_task(sign: str, interval: str):
             await generate_single_horoscope(db, sign, interval)
             await db.commit()
         except Exception as e:
+            await db.rollback()
             logger.error(f"Failed to generate or save horoscope for {sign}: {str(e)}")
             
 
@@ -77,7 +78,7 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         
         
         planetary_positions = calculate_planetary_positions_and_houses(date=datetime.now(utc_plus_3), latitude=lat, longitude=lon)
-        aspects = calculate_aspects(planetary_positions)
+        aspects = calculate_aspects(planetary_positions["planets"])
         
         logger.info(f'generating prediction fo sign: {zodiac_sign}')
         

@@ -71,53 +71,56 @@ def calculate_planetary_positions_and_houses(
         hours, minutes = map(int, time_of_birth.split(":"))
         date = date.replace(hour=hours, minute=minutes)
 
-    # Рассчитываем юлианскую дату (UTC)
-    jd = swe.julday(date.year, date.month, date.day, date.hour + date.minute / 60.0)
+    try:    # Рассчитываем юлианскую дату (UTC)
+        jd = swe.julday(date.year, date.month, date.day, date.hour + date.minute / 60.0)
 
-    # Система домов Плацидуса (если координаты указаны)
-    houses, asc, mc = calculate_houses(jd, latitude, longitude) if latitude and longitude else (None, None, None)
+        # Система домов Плацидуса (если координаты указаны)
+        houses, asc, mc = calculate_houses(jd, latitude, longitude) if latitude and longitude else (None, None, None)
 
-    planets = {
-        'sun': swe.SUN,
-        'moon': swe.MOON,
-        'mercury': swe.MERCURY,
-        'venus': swe.VENUS,
-        'mars': swe.MARS,
-        'jupiter': swe.JUPITER,
-        'saturn': swe.SATURN,
-        'uranus': swe.URANUS,
-        'neptune': swe.NEPTUNE,
-        'pluto': swe.PLUTO,
-    }
-
-    planetary_positions = {}
-    for name, planet in planets.items():
-        
-        position_data, _ = swe.calc_ut(jd, planet)
-        lon, lat, dist, _, _, _ = position_data # только координаты и расстояние
-        
-        # созвездие, в котором планета
-        sign = determine_sign(lon)
-        
-        # дом планеты
-        house = determine_house_from_position(lon, houses) if houses else None
-        
-        planetary_positions[name] = {
-            "longitude": lon,
-            "latitude": lat,
-            "distance": dist,
-            "sign": sign,
-            "house": house
+        planets = {
+            'sun': swe.SUN,
+            'moon': swe.MOON,
+            'mercury': swe.MERCURY,
+            'venus': swe.VENUS,
+            'mars': swe.MARS,
+            'jupiter': swe.JUPITER,
+            'saturn': swe.SATURN,
+            'uranus': swe.URANUS,
+            'neptune': swe.NEPTUNE,
+            'pluto': swe.PLUTO,
         }
 
-    logger.info(f"Calculated planetary positions and houses: {planetary_positions}")
+        planetary_positions = {}
+        for name, planet in planets.items():
+            
+            position_data, _ = swe.calc_ut(jd, planet)
+            lon, lat, dist, _, _, _ = position_data # только координаты и расстояние
+            
+            # созвездие, в котором планета
+            sign = determine_sign(lon)
+            
+            # дом планеты
+            house = determine_house_from_position(lon, houses) if houses else None
+            
+            planetary_positions[name] = {
+                "longitude": lon,
+                "latitude": lat,
+                "distance": dist,
+                "sign": sign,
+                "house": house
+            }
+
+        logger.info(f"Calculated planetary positions and houses: {planetary_positions}")
+        
+        return {
+            "planets": planetary_positions,
+            "houses": houses,
+            "ascendant": asc,  # Добавляем асцендент
+            "midheaven": mc     # Добавляем MC (среднее небо)
+        }
     
-    return {
-        "planets": planetary_positions,
-        "houses": houses,
-        "ascendant": asc,  # Добавляем асцендент
-        "midheaven": mc     # Добавляем MC (среднее небо)
-    }
+    except Exception as e:
+        raise RuntimeError(f"Error while calculating planets and houses: {str(e)}")
 
 
 def calculate_aspects(planetary_positions):

@@ -1,4 +1,4 @@
-from app.services.ai_clients.openai_client.apenai_horo_generation import generate_ai_compatibility_description
+from app.services.ai_clients.openai_client.openai_horo_generation import generate_ai_compatibility_description
 import logging
 
 logger = logging.getLogger(__name__)
