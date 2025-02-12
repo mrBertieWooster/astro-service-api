@@ -12,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError
 import logging
+import traceback
 
 
 logging.config.dictConfig(LOGGING_CONFIG)
@@ -34,6 +35,27 @@ app.include_router(horoscope_router, prefix="/api/v1/horoscope", tags=["horoscop
 app.include_router(compatibility_router, prefix="/api/v1/compatibility", tags=["compatibility"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(natal_chart_router, prefix="/api/v1/natal_chart", tags=["natal_chart"])
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request, exc):
+    """
+    Глобальный обработчик исключений, логирующий полный стектрейс.
+    """
+    if isinstance(exc, RequestValidationError):
+        status_code = 422
+        error_message = "Ошибка валидации запроса"
+    elif isinstance(exc, SQLAlchemyError):
+        status_code = 500
+        error_message = "Ошибка базы данных"
+    else:
+        status_code = 500
+        error_message = "Неизвестная ошибка"
+
+    logger.error(f"{error_message}: {str(exc)}")
+    logger.error(traceback.format_exc())  # Полный стек ошибки
+
+    return JSONResponse(status_code=status_code, content={"error": error_message})
 
 
 @app.exception_handler(StarletteHTTPException)

@@ -25,8 +25,9 @@ async def generate_natal_chart(request: NatalChartRequest):
 
         return NatalChartResponse(
             description=description,
-            planets=planets,
+            planets=planetary_data,
             aspects=aspects,
+            houses=houses,
             ascendant=ascendant,
             midheaven=midheaven
         )

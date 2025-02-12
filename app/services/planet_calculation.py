@@ -73,11 +73,13 @@ def calculate_planetary_positions_and_houses(
     logger.debug('Calculating planetary positions and houses')
 
     # Учитываем время рождения, если оно передано
-    if time_of_birth:
-        hours, minutes = map(int, time_of_birth.split(":"))
-        date = date.replace(hour=hours, minute=minutes)
+    try:
+        if time_of_birth:
+            hours, minutes, *rest = map(int, time_of_birth.split(":"))
+            date = datetime.strptime(date, "%Y-%m-%d")
+            date = date.replace(hour=hours, minute=minutes)
 
-    try:    # Рассчитываем юлианскую дату (UTC)
+        # Рассчитываем юлианскую дату (UTC)
         jd = swe.julday(date.year, date.month, date.day, date.hour + date.minute / 60.0)
 
         # Система домов Плацидуса (если координаты указаны)
@@ -121,8 +123,11 @@ def calculate_planetary_positions_and_houses(
         return {
             "planets": planetary_positions,
             "houses": houses,
-            "ascendant": asc,  # Добавляем асцендент
-            "midheaven": mc     # Добавляем MC (среднее небо)
+            "houses": {i + 1: house for i, house in enumerate(houses)} if houses else {},
+            "ascendant": asc if asc is not None else 0.0, #асцендент
+            "midheaven": mc if mc is not None else 0.0, #MC (среднее небо)
+            "ascendant": asc,
+            "midheaven": mc    
         }
     
     except Exception as e:
