@@ -6,7 +6,7 @@ from app.services.ai_clients.openai_client.openai_natal_generator import generat
 
 router = APIRouter()
 
-@router.post("/natal_chart", response_model=NatalChartResponse)
+@router.post("/", response_model=NatalChartResponse)
 async def generate_natal_chart(request: NatalChartRequest):
     try:
         latitude = request.place_of_birth.latitude

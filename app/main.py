@@ -1,6 +1,7 @@
 from app.api.v1.endpoints.horoscope import router as horoscope_router
 from app.api.v1.endpoints.compatibility import router as compatibility_router
 from app.api.v1.endpoints.admin_endpoints import router as admin_router
+from app.api.v1.endpoints.natal_chart import router as natal_chart_router
 from app.scheduler import scheduler
 from app.logging_config import LOGGING_CONFIG
 from app.exceptions import HoroscopeGenerationError, OpenAIAPIError, DatabaseError
@@ -32,6 +33,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(horoscope_router, prefix="/api/v1/horoscope", tags=["horoscope"])
 app.include_router(compatibility_router, prefix="/api/v1/compatibility", tags=["compatibility"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(natal_chart_router, prefix="/api/v1/natal_chart", tags=["natal_chart"])
 
 
 @app.exception_handler(StarletteHTTPException)
