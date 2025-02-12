@@ -35,13 +35,16 @@ def calculate_houses(jd: float, latitude: float, longitude: float, house_system:
     :param house_system: система домов ('P' - Плацидус, 'K' - Кох и т.д.)
     :return: (список из 12 куспидов домов, асцендент, MC)
     """
-    houses, ascmc = swe.houses(jd, latitude, longitude, house_system)
+    try:
+        houses, ascmc = swe.houses(jd, latitude, longitude, house_system)
 
-    # Асцендент (ASC) и Среднее небо (MC)
-    asc = ascmc[0]  # Асцендент (1-й дом)
-    mc = ascmc[1]   # Среднее небо (10-й дом)
+        # Асцендент (ASC) и Среднее небо (MC)
+        asc = ascmc[0]  # Асцендент (1-й дом)
+        mc = ascmc[1]   # Среднее небо (10-й дом)
 
-    return houses, asc, mc
+        return houses, asc, mc
+    except Exception as e:
+        raise RuntimeError(f"Error while calculating houses: {str(e)}")
 
 
 def determine_house_from_position(planet_longitude: float, houses: list):
@@ -52,10 +55,13 @@ def determine_house_from_position(planet_longitude: float, houses: list):
     :param houses: Список куспидов домов.
     :return: Номер дома (1-12).
     """
-    for i in range(12):
-        if houses[i] <= planet_longitude < houses[(i + 1) % 12]:
-            return i + 1  # Дома нумеруются с 1 до 12
-    return 12  # Если не найдено, возвращаем 12-й дом по умолчанию
+    try:
+        for i in range(12):
+            if houses[i] <= planet_longitude < houses[(i + 1) % 12]:
+                return i + 1  # Дома нумеруются с 1 до 12
+        return 12  # Если не найдено, возвращаем 12-й дом по умолчанию
+    except Exception as e:
+        raise RuntimeError(f"Error while determine house position: {str(e)}")
 
 
 def calculate_planetary_positions_and_houses(
@@ -130,21 +136,24 @@ def calculate_aspects(planetary_positions):
     """
     aspects = []
     planets = list(planetary_positions.keys())  # Теперь это только список планет
+    
+    try:
+        for i in range(len(planets)):
+            for j in range(i + 1, len(planets)):
+                planet1 = planets[i]
+                planet2 = planets[j]
 
-    for i in range(len(planets)):
-        for j in range(i + 1, len(planets)):
-            planet1 = planets[i]
-            planet2 = planets[j]
+                # Извлекаем долготу обеих планет
+                lon1 = planetary_positions[planet1]["longitude"]  # Исправлено
+                lon2 = planetary_positions[planet2]["longitude"]
 
-            # Извлекаем долготу обеих планет
-            lon1 = planetary_positions[planet1]["longitude"]  # Исправлено
-            lon2 = planetary_positions[planet2]["longitude"]
+                # Вычисляем угол между планетами
+                angle = abs(lon1 - lon2)
+                if angle > 180:
+                    angle = 360 - angle
 
-            # Вычисляем угол между планетами
-            angle = abs(lon1 - lon2)
-            if angle > 180:
-                angle = 360 - angle
+                aspects.append((planet1, planet2, angle))
 
-            aspects.append((planet1, planet2, angle))
-
-    return aspects
+        return aspects
+    except Exception as e:
+        raise RuntimeError(f"Error while calculating aspects: {str(e)}")
