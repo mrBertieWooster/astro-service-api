@@ -122,12 +122,9 @@ def calculate_planetary_positions_and_houses(
         
         return {
             "planets": planetary_positions,
-            "houses": houses,
-            "houses": {i + 1: house for i, house in enumerate(houses)} if houses else {},
+            "houses": {str(i + 1): house for i, house in enumerate(houses)} if houses else {},
             "ascendant": asc if asc is not None else 0.0, #асцендент
-            "midheaven": mc if mc is not None else 0.0, #MC (среднее небо)
-            "ascendant": asc,
-            "midheaven": mc    
+            "midheaven": mc if mc is not None else 0.0 #MC (среднее небо)   
         }
     
     except Exception as e:
@@ -157,7 +154,7 @@ def calculate_aspects(planetary_positions):
                 if angle > 180:
                     angle = 360 - angle
 
-                aspects.append((planet1, planet2, angle))
+                aspects.append({"planet1": planet1, "planet2": planet2, "angle": angle})
 
         return aspects
     except Exception as e:
