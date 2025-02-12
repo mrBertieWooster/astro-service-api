@@ -72,13 +72,13 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
                 Horoscope.type == interval
             )
         )
-        if existing_horoscope.scalar_one_or_none():
+        if existing_horoscope:
             logger.info(f"Horoscope for {zodiac_sign} already exists for {interval}. Skipping generation.")
-            return existing_horoscope.scalar_one()
+            return existing_horoscope.scalar_one_or_none()
         
         
         planetary_positions = calculate_planetary_positions_and_houses(date=datetime.now(utc_plus_3), latitude=lat, longitude=lon)
-        aspects = calculate_aspects(planetary_positions["planets"])
+        aspects = calculate_aspects(planetary_positions)
         
         logger.info(f'generating prediction fo sign: {zodiac_sign}')
         
@@ -105,5 +105,4 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         await db.rollback()
         raise
     except Exception as e:
-        await db.rollback()
         raise RuntimeError(f"An unexpected error occurred: {str(e)}")
