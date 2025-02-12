@@ -6,7 +6,7 @@ class PlaceOfBirth(BaseModel):
     longitude: float
 
 class NatalChartRequest(BaseModel):
-    date_of_birth: str  # "YYYY-MM-DD"
+    date_of_birth: str  # "DD.MM.YYYY"
     time_of_birth: str  # "HH:MM:SS"
     place_of_birth: PlaceOfBirth
 

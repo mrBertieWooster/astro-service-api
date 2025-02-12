@@ -76,7 +76,7 @@ def calculate_planetary_positions_and_houses(
     try:
         if time_of_birth:
             hours, minutes, *rest = map(int, time_of_birth.split(":"))
-            date = datetime.strptime(date, "%Y-%m-%d")
+            date = datetime.strptime(date, "%d.%m.%Y")
             date = date.replace(hour=hours, minute=minutes)
 
         # Рассчитываем юлианскую дату (UTC)
@@ -154,7 +154,7 @@ def calculate_aspects(planetary_positions):
                 if angle > 180:
                     angle = 360 - angle
 
-                aspects.append({"planet1": planet1, "planet2": planet2, "angle": angle})
+                aspects.append((planet1, planet2, angle))
 
         return aspects
     except Exception as e:
