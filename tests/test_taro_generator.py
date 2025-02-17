@@ -17,7 +17,8 @@ async def test_generate_tarot_interpretation():
         MockOpenAI.return_value = mock_client
 
         spread = [{"name": "Шут", "position": "upright", "meaning": "Свобода"}]
-        interpretation = await generate_tarot_interpretation(spread)
+        spread_type = 'card-of-the-day'
+        interpretation = await generate_tarot_interpretation(spread, spread_type)
 
         assert isinstance(interpretation, str)
         assert "Твоя судьба связана" in interpretation
