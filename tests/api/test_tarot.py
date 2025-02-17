@@ -5,7 +5,6 @@ from app.services.ai_clients.ai_clients import get_openai_client
 import asyncio
 
 
-"""
 @pytest.mark.asyncio
 async def test_get_tarot_spread(test_client, test_db):
     # Добавляем тестовые карты в БД
@@ -24,7 +23,7 @@ async def test_get_tarot_spread(test_client, test_db):
             {"name": "Маг", "position": "reversed", "meaning": "Манипуляция"}
         ])
 
-        response = await test_client.post(
+        response = test_client.post(
             "/api/v1/tarot/spread",
             json={"spread_type": "card-of-the-day"}
         )
@@ -39,4 +38,4 @@ async def test_get_tarot_spread(test_client, test_db):
         assert isinstance(mocked_cards, list)
         assert len(data["cards"]) == 2
         assert data["interpretation"] == "Мокированная интерпретация карт Таро"
-"""
+

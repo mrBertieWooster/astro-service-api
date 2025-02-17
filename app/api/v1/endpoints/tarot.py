@@ -25,7 +25,7 @@ async def get_tarot_spread(request: TarotSpreadRequest, db: Session = Depends(ge
         raise HTTPException(status_code=400, detail="Неизвестный тип расклада.")
 
     try:
-        cards = draw_tarot_cards(db, spread_types[request.spread_type])
+        cards = await draw_tarot_cards(db, spread_types[request.spread_type])
         interpretation = await generate_tarot_interpretation(cards, request.spread_type, request.question)
 
         return TarotSpreadResponse(cards=cards, interpretation=interpretation)
