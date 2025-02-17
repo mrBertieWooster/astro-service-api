@@ -13,7 +13,7 @@ import logging
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-@router.get("/", summary="Проверить совместимость двух знаков зодиака")
+@router.get('/', summary='Проверить совместимость двух знаков зодиака')
 async def check_zodiac_compatibility(
     sign1: ZodiacSign,
     sign2: ZodiacSign,
@@ -23,7 +23,6 @@ async def check_zodiac_compatibility(
     Проверяет совместимость между двумя знаками зодиака.
     """
     try:
-        
         logger.info(f'checking signs')
         
         if sign1 == sign2:
@@ -33,13 +32,13 @@ async def check_zodiac_compatibility(
             logger.info(f'got zodiac {zodiac}')
 
             if not zodiac:
-                raise HTTPException(status_code=404, detail=f"Знак {sign1.value} не найден")
+                raise HTTPException(status_code=404, detail=f'Знак {sign1.value} не найден')
 
             return ZodiacCompatibilityResponse(
                 sign1=zodiac,
                 sign2=zodiac,
                 compatibility_percentage=100,
-                description=f"{sign1.value.capitalize()} полностью совместим с самим собой."
+                description=f'{sign1.value.capitalize()} полностью совместим с самим собой.'
             )
 
         
@@ -53,7 +52,7 @@ async def check_zodiac_compatibility(
         zodiac2 = zodiac2_info.scalar_one_or_none()
 
         if not zodiac1 or not zodiac2:
-            raise HTTPException(status_code=404, detail="Один из знаков не найден")
+            raise HTTPException(status_code=404, detail='Один из знаков не найден')
 
         # Получаем совместимость из БД
         compatibility_info = await db.execute(
@@ -65,7 +64,7 @@ async def check_zodiac_compatibility(
         compatibility = compatibility_info.scalar_one_or_none()
 
         if not compatibility:
-            raise HTTPException(status_code=404, detail="Не найдено соответствие между знаками")
+            raise HTTPException(status_code=404, detail='Не найдено соответствие между знаками')
         
         description = await generate_compatibility_description(sign1.value, sign2.value)
 
@@ -80,7 +79,7 @@ async def check_zodiac_compatibility(
         raise http_exc
     except SQLAlchemyError as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f'Database error: {str(e)}')
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An unexpected error occurred.")
+        logger.error(f'An unexpected error occurred: {str(e)}')
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='An unexpected error occurred.')

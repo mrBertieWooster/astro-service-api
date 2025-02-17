@@ -1,4 +1,5 @@
 from app.config import settings
+from app.exceptions import CalculatingPlanetsError
 import swisseph as swe
 from typing import Optional
 from datetime import datetime
@@ -43,8 +44,9 @@ def calculate_houses(jd: float, latitude: float, longitude: float, house_system:
         mc = ascmc[1]   # Среднее небо (10-й дом)
 
         return houses, asc, mc
-    except Exception as e:
-        raise RuntimeError(f"Error while calculating houses: {str(e)}")
+    except CalculatingPlanetsError as e:
+        logger.error(f'Error while calculating houses: {str(e)}')
+        raise
 
 
 def determine_house_from_position(planet_longitude: float, houses: list):
@@ -60,8 +62,10 @@ def determine_house_from_position(planet_longitude: float, houses: list):
             if houses[i] <= planet_longitude < houses[(i + 1) % 12]:
                 return i + 1  # Дома нумеруются с 1 до 12
         return 12  # Если не найдено, возвращаем 12-й дом по умолчанию
-    except Exception as e:
-        raise RuntimeError(f"Error while determine house position: {str(e)}")
+    
+    except CalculatingPlanetsError as e:
+        logger.error(f'Error while determinig houses from positions: {str(e)}')
+        raise
 
 
 def calculate_planetary_positions_and_houses(
@@ -127,8 +131,9 @@ def calculate_planetary_positions_and_houses(
             "midheaven": mc if mc is not None else 0.0 #MC (среднее небо)   
         }
     
-    except Exception as e:
-        raise RuntimeError(f"Error while calculating planets and houses: {str(e)}")
+    except CalculatingPlanetsError as e:
+        logger.error(f'Error while planetary positions: {str(e)}')
+        raise
 
 
 def calculate_aspects(planetary_positions):
@@ -157,5 +162,6 @@ def calculate_aspects(planetary_positions):
                 aspects.append((planet1, planet2, angle))
 
         return aspects
-    except Exception as e:
-        raise RuntimeError(f"Error while calculating aspects: {str(e)}")
+    except CalculatingPlanetsError as e:
+        logger.error(f'Error while calculating aspects: {str(e)}')
+        raise

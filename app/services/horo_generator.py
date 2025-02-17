@@ -37,10 +37,13 @@ async def generate_horoscopes(interval='daily'):
 
     except ValueError as ve:
         logger.error(f"Error in astrological calculations: {str(ve)}")
+        raise
     except ConnectionError as ce:
         logger.error(f"Failed to connect to external service: {str(ce)}")
+        raise
     except Exception as e:
         logger.error(f"An unexpected error occurred: {str(e)}")
+        raise
 
 
 async def generate_single_horoscope_task(sign: str, interval: str):
@@ -52,6 +55,7 @@ async def generate_single_horoscope_task(sign: str, interval: str):
         except Exception as e:
             await db.rollback()
             logger.error(f"Failed to generate or save horoscope for {sign}: {str(e)}")
+            raise
             
 
 async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str, lat: float = None, lon: float = None):
@@ -102,7 +106,9 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
         return horoscope
     
     except SQLAlchemyError as se:
+        logger.error(f'Error cannot generate single horoscope: {str(se)}')
         await db.rollback()
         raise
     except Exception as e:
-        raise RuntimeError(f"An unexpected error occurred: {str(e)}")
+        logger.error(f'Error cannot generate single horoscope: {str(e)}')
+        raise

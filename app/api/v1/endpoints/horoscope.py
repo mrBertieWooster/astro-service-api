@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.post("/{zodiac_sign}", summary="Получить гороскоп", description="Возвращает гороскоп для указанного знака зодиака.", response_model=HoroscopeResponse)
+@router.post('/{zodiac_sign}', summary='Получить гороскоп', description='Возвращает гороскоп для указанного знака зодиака.', response_model=HoroscopeResponse)
 async def get_horoscope(zodiac_sign: ZodiacSign, request: HoroscopeRequestSchema, db: AsyncSession = Depends(get_db)):
 
     """
@@ -52,11 +52,8 @@ async def get_horoscope(zodiac_sign: ZodiacSign, request: HoroscopeRequestSchema
         
         if not horoscope: # в базе еще нет, генерируем для конкретного знака
             logger.warning(f'Cannot find horoscope for sign {sign} in db for interval {request.interval}')
-            try:
-                logger.info(f'Try to generate horoscope for sign {sign} in-place')
-                horoscope = await generate_single_horoscope(db, sign, request.interval, latitude, longitude)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to generate horoscope: {str(e)}")
+           
+            horoscope = await generate_single_horoscope(db, sign, request.interval, latitude, longitude)
             
         request_record = HoroscopeRequest(
             sign=sign,
@@ -69,8 +66,10 @@ async def get_horoscope(zodiac_sign: ZodiacSign, request: HoroscopeRequestSchema
         return HoroscopeResponse(sign=horoscope.sign, prediction=horoscope.prediction)
 
     except SQLAlchemyError as e:
-        await db.rollback()  # Откатываем транзакцию при ошибке базы данных
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        await db.rollback()
+        logger.error(f'Database error: {str(e)}')
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка при генерации гороскопа: {str(e)}")
+        logger.error(f'Failed to generate horoscope: {str(e)}')
+        raise
 
