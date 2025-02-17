@@ -5,6 +5,8 @@ from app.config import settings
 from app.api.v1.models.horoscope import Base
 from app.api.v1.models.zodiac import Zodiac
 from app.api.v1.models.compatibility import Compatibility
+from app.api.v1.models.tarot import TarotCard
+from app.api.v1.models.horoscope import Horoscope
 
 # метаданные моделей
 target_metadata = Base.metadata

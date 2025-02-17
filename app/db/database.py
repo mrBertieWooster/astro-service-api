@@ -11,7 +11,6 @@ class Base(DeclarativeBase):
     updated_at = Column(DateTime(timezone=True), default=datetime.now(timezone.utc), onupdate=datetime.now, nullable=False)
 
 def get_db_url():
-    print(settings.DATABASE_URL)
     return settings.DATABASE_URL
 
 def create_engine():
