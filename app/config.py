@@ -23,12 +23,6 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     
-    # Rabbit
-    RABBITMQ_HOST: str
-    RABBITMQ_PORT: int
-    RABBITMQ_USER: str
-    RABBITMQ_PASSWORD: str
-    
     # OpenAI
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = 'gpt-4o'

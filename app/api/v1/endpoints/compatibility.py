@@ -84,7 +84,7 @@ async def check_zodiac_compatibility(
         logger.error(f'An unexpected error occurred: {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='An unexpected error occurred.')
     
-    
+"""   
 @router.post("/birthdate", response_model=CompatibilityResponse)
 async def get_compatibility_by_birthdate(request: CompatibilityRequest):
     try:
@@ -121,3 +121,4 @@ async def get_compatibility_by_birthdate(request: CompatibilityRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при расчете совместимости: {str(e)}")
+"""
