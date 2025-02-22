@@ -1,6 +1,6 @@
 from app.config import settings
 from app.services.ai_clients.ai_clients import get_openai_client
-from openai import AsyncOpenAI, APIError
+from openai import APIError
 import openai
 import asyncio
 import logging
@@ -43,26 +43,5 @@ async def generate_horoscope_text(sign: str, planetary_positions: dict, aspects:
             logger.error(f'OpenAI API error: {e}')
             raise
     
-async def generate_ai_compatibility_description(sign1: str, sign2: str) -> str:
-    """
-    Генерирует текстовое описание совместимости через OpenAI.
-    """
-    client = get_openai_client()
-    
-    try:
-        prompt = (
-            f"Составь описание совместимости между {sign1.capitalize()} и {sign2.capitalize()}.\n"
-            f"Укажи сильные и слабые стороны отношений."
-        )
 
-        response = await client.chat.completions.create(
-            model=settings.OPENAI_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=2000
-        )
-        return response.choices[0].message.content.strip()
-    
-    except (APIError, Exception) as e:
-        logger.error(f"Failed to generate compatibility description: {str(e)}")
-        raise
     
