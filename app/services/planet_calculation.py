@@ -142,7 +142,7 @@ def calculate_aspects(planetary_positions):
     Возвращает список аспектов в формате (планета1, планета2, угол).
     """
     aspects = []
-    planets = list(planetary_positions.keys())  # Теперь это только список планет
+    planets = list(planetary_positions["planets"].keys())  # Теперь это только список планет
     
     try:
         for i in range(len(planets)):
@@ -151,8 +151,8 @@ def calculate_aspects(planetary_positions):
                 planet2 = planets[j]
 
                 # Извлекаем долготу обеих планет
-                lon1 = planetary_positions[planet1]["longitude"]  # Исправлено
-                lon2 = planetary_positions[planet2]["longitude"]
+                lon1 = planetary_positions["planets"][planet1]["longitude"]  # Исправлено  longitude
+                lon2 = planetary_positions["planets"][planet2]["longitude"]
 
                 # Вычисляем угол между планетами
                 angle = abs(lon1 - lon2)
