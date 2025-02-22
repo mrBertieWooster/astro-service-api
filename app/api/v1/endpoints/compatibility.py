@@ -83,3 +83,41 @@ async def check_zodiac_compatibility(
     except Exception as e:
         logger.error(f'An unexpected error occurred: {str(e)}')
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail='An unexpected error occurred.')
+    
+    
+@router.post("/birthdate", response_model=CompatibilityResponse)
+async def get_compatibility_by_birthdate(request: CompatibilityRequest):
+    try:
+        # Рассчитываем знаки зодиака и аспекты
+        compatibility_data = calculate_astrological_compatibility(
+            request.first_person, request.second_person
+        )
+
+        # Генерируем описание через OpenAI
+        client = get_openai_client()
+        prompt = (
+            f"Создай астрологический анализ совместимости:\n"
+            f"Человек 1: {request.first_person.date_of_birth} ({compatibility_data['first_person_sign']})\n"
+            f"Человек 2: {request.second_person.date_of_birth} ({compatibility_data['second_person_sign']})\n"
+            f"Аспекты: {compatibility_data['aspects']}\n"
+            f"Процент совместимости: {compatibility_data['compatibility_score']}%"
+        )
+
+        response = await client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=2000
+        )
+
+        compatibility_text = response.choices[0].message.content
+
+        return CompatibilityResponse(
+            first_person_sign=compatibility_data["first_person_sign"],
+            second_person_sign=compatibility_data["second_person_sign"],
+            compatibility_score=compatibility_data["compatibility_score"],
+            compatibility_text=compatibility_text,
+            aspects=compatibility_data["aspects"]
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при расчете совместимости: {str(e)}")

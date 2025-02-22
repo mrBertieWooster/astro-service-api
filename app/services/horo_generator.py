@@ -23,9 +23,11 @@ async def generate_horoscopes(interval='daily'):
     :param interval: Тип интервала (например, 'daily', 'weekly').
     :param coords: Координаты для вычисления домов.
     """
+    
+    loop = asyncio.get_running_loop()
     try:
         tasks = [
-            asyncio.create_task(generate_single_horoscope_task(sign, interval))
+            loop.create_task(generate_single_horoscope_task(sign, interval))
             for sign in signs
         ]
 
@@ -69,16 +71,16 @@ async def generate_single_horoscope(db: Session, zodiac_sign: str, interval: str
     current_date = datetime.now(utc_plus_3).date()  # Сегодняшняя дата по МСК
     
     try:
-        existing_horoscope = await db.execute(
+        existing_horoscope = (await db.execute(
             select(Horoscope).filter(
                 Horoscope.sign == zodiac_sign,
                 Horoscope.date == datetime.now(timezone(timedelta(hours=3))).date(),
                 Horoscope.type == interval
             )
-        )
+        )).scalar_one_or_none()
         if existing_horoscope:
             logger.info(f"Horoscope for {zodiac_sign} already exists for {interval}. Skipping generation.")
-            return existing_horoscope.scalar_one_or_none()
+            return existing_horoscope
         
         
         planetary_positions = calculate_planetary_positions_and_houses(date=datetime.now(utc_plus_3), latitude=lat, longitude=lon)
