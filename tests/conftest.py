@@ -84,3 +84,10 @@ def mock_swiss_ephemeris():
             "mercury": (90.0, 0.0, 1.0),
         }
         yield mock
+
+        
+@pytest.fixture
+def mock_get_city_coordinates():
+    with patch('app.services.geo.get_city_coordinates') as mock:
+        mock.return_value = (55.7558, 37.6173)  # Москва, например
+        yield mock

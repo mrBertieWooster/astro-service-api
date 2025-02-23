@@ -29,6 +29,7 @@ class Settings(BaseSettings):
 
     # Default coords
     DEFAULT_COORDS: tuple = (55.7558, 37.6176)
+    DEFAULT_CITY: str = 'Москва'
 
     @property
     def DATABASE_URL(self) -> str:
