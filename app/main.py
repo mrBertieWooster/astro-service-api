@@ -10,6 +10,7 @@ from app.exceptions import HoroscopeGenerationError, OpenAIAPIError, DatabaseErr
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from contextlib import asynccontextmanager
 from sqlalchemy.exc import SQLAlchemyError
@@ -31,6 +32,22 @@ async def lifespan(app: FastAPI):
     scheduler.shutdown()
 
 app = FastAPI(lifespan=lifespan)
+
+
+origins = [
+    "http://localhost",
+    "http://localhost:3000",  # Если фронтенд на React/Vue
+    "https://example.com",  # Добавь свои домены
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Разрешенные домены
+    allow_credentials=True,  # Разрешаем куки и авторизацию
+    allow_methods=["*"],  # Разрешаем все методы (GET, POST и т. д.)
+    allow_headers=["*"],  # Разрешаем все заголовки
+)
 
 
 app.include_router(horoscope_router, prefix="/api/v1/horoscope", tags=["horoscope"])
