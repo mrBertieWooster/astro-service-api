@@ -20,7 +20,13 @@ async def check_user(user_id: str, db: AsyncSession = Depends(get_db)):
     """
     Проверяет, существует ли пользователь в базе данных.
     """
+    
+    logger.info(f"Session state before query: {db.is_active}")
+    
     result = await db.execute(select(User).filter(User.telegram_id == user_id))
+    
+    logger.info(f"Session state after query: {db.is_active}")
+    
     user = result.scalar_one_or_none()
     return {"exists": user is not None}
 
@@ -33,9 +39,15 @@ async def add_user(user_data: UserCreateRequest, db: AsyncSession = Depends(get_
     """
     try:
         # Проверяем, есть ли пользователь
-        existing_user = await db.execute(select(User).filter(User.telegram_id == user_data.telegram_id))
-        if existing_user.scalar_one_or_none():
+        
+        logger.info(f"Session state before query: {db.is_active}")
+        
+        result = await db.execute(select(User).filter(User.telegram_id == user_data.telegram_id))
+        existing_user = result.scalar()
+        if existing_user:
             raise HTTPException(status_code=400, detail="User already exists")
+        
+        logger.info(f"Session state after query: {db.is_active}")
 
         # Определяем город пользователя
         city_name = user_data.city_name or settings.DEFAULT_CITY
