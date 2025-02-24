@@ -1,11 +1,15 @@
+from app.main import app
 from app.db.database import get_db
 from app.db.database import Base
-from app.main import app
-import pytest
+from app.api.v1.models.user import City
+from app.api.v1.models.zodiac import Zodiac 
+from app.enums.zodiac import ZodiacElement, ZodiacQuality
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.future import select
 from fastapi.testclient import TestClient
 from unittest.mock import patch
+import pytest
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,42 +24,73 @@ async def test_db():
     """
     logger.info("Initializing test database...")
 
-    # Создание асинхронного engine
+    # **Создаём engine**
     engine = create_async_engine(
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},
         future=True
     )
 
-    # Создание таблиц
+    # **Создаём таблицы**
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Создание асинхронной фабрики сессий
-    testing_session_local = sessionmaker(
+    # **Создаём фабрику сессий**
+    TestingSessionLocal = sessionmaker(
         engine, class_=AsyncSession, expire_on_commit=False
     )
 
-    # Переопределение dependency для тестов
+    # **Добавляем города и знаки зодиака**
+    async with TestingSessionLocal() as session:
+        # Проверяем, есть ли уже записи в БД
+        existing_cities = await session.execute(select(City))
+        existing_zodiacs = await session.execute(select(Zodiac))
+
+        if not existing_cities.scalars().all():
+            session.add_all([
+                City(name="Москва", latitude=55.7558, longitude=37.6173),
+                City(name="Таганрог", latitude=47.2362, longitude=38.8969),
+                City(name="Санкт-Петербург", latitude=59.9343, longitude=30.3351),
+            ])
+
+        if not existing_zodiacs.scalars().all():
+            session.add_all([
+                Zodiac(name="aries", element=ZodiacElement.FIRE, ruling_planet="Марс", quality=ZodiacQuality.CARDINAL),
+                Zodiac(name="taurus", element=ZodiacElement.EARTH, ruling_planet="Венера", quality=ZodiacQuality.FIXED),
+                Zodiac(name="gemini", element=ZodiacElement.AIR, ruling_planet="Меркурий", quality=ZodiacQuality.MUTABLE),
+                Zodiac(name="cancer", element=ZodiacElement.WATER, ruling_planet="Луна", quality=ZodiacQuality.CARDINAL),
+                Zodiac(name="leo", element=ZodiacElement.FIRE, ruling_planet="Солнце", quality=ZodiacQuality.FIXED),
+                Zodiac(name="virgo", element=ZodiacElement.EARTH, ruling_planet="Меркурий", quality=ZodiacQuality.MUTABLE),
+                Zodiac(name="libra", element=ZodiacElement.AIR, ruling_planet="Венера", quality=ZodiacQuality.CARDINAL),
+                Zodiac(name="scorpio", element=ZodiacElement.WATER, ruling_planet="Плутон", quality=ZodiacQuality.FIXED),
+                Zodiac(name="sagittarius", element=ZodiacElement.FIRE, ruling_planet="Юпитер", quality=ZodiacQuality.MUTABLE),
+                Zodiac(name="capricorn", element=ZodiacElement.EARTH, ruling_planet="Сатурн", quality=ZodiacQuality.CARDINAL),
+                Zodiac(name="aquarius", element=ZodiacElement.AIR, ruling_planet="Уран", quality=ZodiacQuality.FIXED),
+                Zodiac(name="pisces", element=ZodiacElement.WATER, ruling_planet="Нептун", quality=ZodiacQuality.MUTABLE),
+            ])
+
+        await session.commit()
+
+    # **Переопределяем зависимость FastAPI для работы с тестовой БД**
     async def override_get_db():
-        async with testing_session_local() as session:
+        async with TestingSessionLocal() as session:
             yield session
 
-    # Сохраняем оригинальную dependency
-    original_get_db = app.dependency_overrides.get(get_db, get_db)
     app.dependency_overrides[get_db] = override_get_db
 
-    async with testing_session_local() as session:
+    # **Передаём сессию в тесты**
+    async with TestingSessionLocal() as session:
         yield session
 
     logger.info("Tearing down test database...")
 
-    # Восстанавливаем оригинальную dependency после тестов
-    app.dependency_overrides[get_db] = original_get_db
-
-    # Очистка после тестов
+    # **Удаляем зависимость**
+    app.dependency_overrides.pop(get_db, None)
+    
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+    # **Закрываем engine**
     await engine.dispose()
 
 # Фикстура для тестирования API

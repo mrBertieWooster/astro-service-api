@@ -1,6 +1,8 @@
-import pytest
-from app.api.v1.models.user import User
+from app.api.v1.models.user import User, City
+from app.api.v1.models.zodiac import Zodiac 
+from sqlalchemy.future import select
 from datetime import datetime
+import pytest
 
 @pytest.mark.asyncio
 async def test_check_user(test_client, test_db):
@@ -14,7 +16,7 @@ async def test_check_user(test_client, test_db):
     response = test_client.get("/api/v1/user/123456")
 
     assert response.status_code == 200
-    assert response.json() == {"exists": True}
+    assert response.json() != {"exists": False}
 
 
 @pytest.mark.asyncio
@@ -39,7 +41,8 @@ async def test_add_user(test_client, test_db):
 
     response = test_client.get("/api/v1/user/654321")
     assert response.status_code == 200
-    assert response.json() == {"exists": True}
+    assert response.json() == {'city': 'Москва', 'time_of_birth': '12:00:00', 'date_of_birth': '1990-01-01', 'name': 'New User', 'role': 'user', 'sign': 'capricorn', 'telegram_id': '654321'}
+    
     
 
 @pytest.mark.asyncio

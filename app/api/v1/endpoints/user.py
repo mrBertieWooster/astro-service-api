@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.exc import SQLAlchemyError
 from app.db.database import get_db
 from app.api.v1.models.user import User, City
-from app.schemas.user import UserCreateRequest, UserResponse
+from app.schemas.user import UserCreateRequest, UserDetailResponse
 from app.services.geo import get_city_coordinates
 from app.services.astro_utils import get_zodiac_sign
 from app.config import settings
@@ -15,20 +16,37 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/{user_id}", response_model=UserResponse)
+@router.get("/{user_id}", response_model=UserDetailResponse)
 async def check_user(user_id: str, db: AsyncSession = Depends(get_db)):
     """
-    Проверяет, существует ли пользователь в базе данных.
+    Проверяет, существует ли пользователь в базе данных и отдает его данные.
     """
     
     logger.info(f"Session state before query: {db.is_active}")
     
-    result = await db.execute(select(User).filter(User.telegram_id == user_id))
+    result = await db.execute(
+            select(User).filter(User.telegram_id == user_id).options(
+                selectinload(User.city),
+                selectinload(User.sign)
+            )
+        )
     
     logger.info(f"Session state after query: {db.is_active}")
     
-    user = result.scalar_one_or_none()
-    return {"exists": user is not None}
+    user = result.scalars().first()
+    
+    if not user:
+        return {"exists": False}
+    
+    return UserDetailResponse(
+            telegram_id=user.telegram_id,
+            name=user.name,
+            date_of_birth=user.date_of_birth.strftime("%Y-%m-%d") if user.date_of_birth else None,
+            time_of_birth=user.time_of_birth.strftime("%H:%M:%S") if user.time_of_birth else None,
+            city=user.city.name,
+            sign=user.sign.name,
+            role=user.role
+        )
 
 
 @router.post("/add")

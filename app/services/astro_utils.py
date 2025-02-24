@@ -2,6 +2,9 @@ from datetime import datetime
 from app.api.v1.models.zodiac import Zodiac
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+import logging
+
+logger = logging.getLogger(__name__)
 
 ZODIAC_DATES = {
     "aries": ("03-21", "04-19"),
@@ -22,12 +25,26 @@ async def get_zodiac_sign(db: AsyncSession, birth_date: str):
     """
     Определяет знак зодиака по дате рождения и возвращает ID знака из базы.
     """
-    month_day = birth_date[5:]  # Извлекаем "MM-DD"
+    month_day = birth_date[5:]  # "MM-DD"
+    logger.debug(f'День месяца {month_day}')
 
     for sign, (start, end) in ZODIAC_DATES.items():
-        if start <= month_day <= end:
+        logger.debug(f'Проверяем: {sign}, старт: {start}, месяц-день: {month_day}, конец: {end}')
+
+        # Обрабатываем знаки, которые охватывают Новый год (например, Козерог: 12-22 — 01-19)
+        if start > end:  
+            if month_day >= start or month_day <= end:
+                logger.debug(f'Определили знак: {sign}')
+                result = await db.execute(select(Zodiac).filter(Zodiac.name == sign))
+                zodiac = result.scalar_one_or_none()
+                return zodiac.id if zodiac else None
+        
+        # Обычный случай (в пределах одного года)
+        elif start <= month_day <= end:
+            logger.debug(f'Определили знак: {sign}')
             result = await db.execute(select(Zodiac).filter(Zodiac.name == sign))
             zodiac = result.scalar_one_or_none()
-            if zodiac:
-                return zodiac.id
-    return None
+            return zodiac.id if zodiac else None
+
+    return None 
+

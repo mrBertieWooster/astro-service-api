@@ -1,5 +1,6 @@
 from app.api.v1.models.zodiac import Zodiac
 from app.api.v1.models.compatibility import Compatibility
+from sqlalchemy.future import select
 from unittest.mock import AsyncMock, patch
 import pytest
 import logging
@@ -14,12 +15,10 @@ async def test_existing_compatibility(test_client, test_db):
     
     logger.info(f'adding test data')
     
-    zodiac1 = Zodiac(name="aries", element="fire", ruling_planet="Mars", quality="cardinal")
-    zodiac2 = Zodiac(name="cancer", element="water", ruling_planet="Moon", quality="cardinal")
-    test_db.add_all([zodiac1, zodiac2])
-    await test_db.commit()
-    await test_db.refresh(zodiac1)
-    await test_db.refresh(zodiac2)
+    result = await test_db.execute(select(Zodiac).filter(Zodiac.name == 'aries'))
+    zodiac1 = result.scalar_one_or_none()
+    result = await test_db.execute(select(Zodiac).filter(Zodiac.name == 'cancer'))
+    zodiac2 = result.scalar_one_or_none()
 
     compatibility = Compatibility(
         sign1_id=zodiac1.id,
@@ -31,7 +30,7 @@ async def test_existing_compatibility(test_client, test_db):
     await test_db.commit()
     await test_db.refresh(compatibility)
     
-    logger.info("Mocking OpenAI API call...")
+    logger.info("Mocking OpenAI API call")
     with patch("app.api.v1.endpoints.compatibility.generate_compatibility_description", new_callable=AsyncMock) as mock_generate:
         mock_generate.return_value = "Test compatibility description."
 
